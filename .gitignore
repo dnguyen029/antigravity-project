@@ -1,0 +1,18 @@
+# Ignore sensitive credentials
+.env
+
+# Ignore python caches and build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Ignore local configuration files
+mcp_config.json
+
+# Ignore local virtual environment
+.venv/
+
+# Ignore AGY session symlinks
+.antigravitycli/
