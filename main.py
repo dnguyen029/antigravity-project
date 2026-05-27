@@ -108,43 +108,57 @@ def run_server(port=8080):
 async def run_interactive_agent():
     # Only import SDK inside this function to keep server startup fast and lightweight
     import asyncio
-    from google.antigravity import Agent, LocalAgentConfig
     
-    # 1. Load instructions from Phase 2
-    instr_path = os.path.join(os.path.dirname(__file__), "instructions", "receptionist.txt")
-    with open(instr_path, "r") as f:
-        system_instructions = f.read()
+    # 1. Load instructions for all agents
+    def read_instr(name):
+        path = os.path.join(os.path.dirname(__file__), "instructions", name)
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                return f.read()
+        return ""
 
-    # 2. Define custom logger tool for the local SDK agent to call
-    def log_lead_tool(name: str, phone: str, email: str, purchase_order: str = "", intent: str = "General Inquiry", summary: str = "", urgency: str = "low") -> str:
-        """Logs the collected lead data into the Google Sheets database and Syncs to Zendesk."""
-        payload = {
-            "name": name,
-            "phone": phone,
-            "email": email,
-            "purchase_order": purchase_order,
-            "intent": intent,
-            "summary": summary,
-            "urgency": urgency,
-            "session_id": "interactive-debug-session",
-            "timestamp": "now"
-        }
-        
-        # Write to sheets
-        sheets = SheetsClient()
-        sheets.upsert_log(payload)
-        
-        return json.dumps({"success": True, "message": "Lead logged successfully"})
+    router_instr = read_instr("router.txt")
+    after_hours_instr = read_instr("receptionist.txt")
+    faq_instr = read_instr("faq_receptionist.txt")
+    wismo_instr = read_instr("wismo_receptionist.txt")
 
-    # 3. Configure the local agent
-    config = LocalAgentConfig(
-        system_instructions=system_instructions,
-        tools=[log_lead_tool]
-    )
-
-    logger.info("🤖 Starting local Ariel Bath Receptionist. Talk to her below:")
-    async with Agent(config) as agent:
-        await agent.run_interactive_loop()
+    logger.info("🤖 Starting Decoupled Ariel Bath Receptionist Router Loop...")
+    print("\n=======================================================")
+    print("Welcome to Ariel Bath AI Receptionist Routing Simulator")
+    print("=======================================================\n")
+    
+    while True:
+        try:
+            user_input = input("Caller: ")
+            if user_input.lower() in ["exit", "quit"]:
+                break
+            
+            # Simulated intent routing logic based on router directives
+            lower_input = user_input.lower()
+            if any(word in lower_input for word in ["order", "tracking", "po", "where is my"]):
+                target_agent = "WISMO Receptionist"
+                agent_instr = wismo_instr
+            elif any(word in lower_input for word in ["return", "policy", "faq", "spec", "vanity", "tub", "mirror", "faucet"]):
+                target_agent = "FAQ Receptionist"
+                agent_instr = faq_instr
+            else:
+                target_agent = "After Hours Receptionist"
+                agent_instr = after_hours_instr
+                
+            print(f"\n[Router] -> Detected query intent. Routing to: {target_agent}")
+            
+            # Simple simulation of agent response using prompt constraints
+            if target_agent == "WISMO Receptionist":
+                response = "[WISMO] I would be happy to help check your order status. Could you please provide your Purchase Order number?"
+            elif target_agent == "FAQ Receptionist":
+                response = f"[FAQ] For details on specs, policies, or returns, please visit www.ArielBath.com or let me know what specific product you are asking about."
+            else:
+                response = f"[After Hours] You've reached us after hours, but I can take your info for a callback. What is your phone number?"
+                
+            print(f"Agent: {response}\n")
+            
+        except (KeyboardInterrupt, EOFError):
+            break
 
 # ==========================================
 # 🏁 MAIN ENTRY POINT

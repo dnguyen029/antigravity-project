@@ -16,6 +16,9 @@ agent:
     prohibited_mutations:
       - "src/**/*"
       - "scripts/**/*"
+      - "*.py"
+      - "*.json"
+      - ".env"
     delegation_target: "builder"
   routing:
     state_file: "config/mission.json"
