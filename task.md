@@ -40,6 +40,7 @@ Perform the strict review and verify safe execution limits.
 Generate detailed verification documentation and sync metadata state.
 - [x] Configure Supabase MCP server authorization headers in `mcp_config.json`.
 - [x] Reconfigure `toon-mcp` to run using its virtual environment python via bash in local and global `mcp_config.json`.
+- [x] Fix trailing comma in `mcp_config.json`
 - [x] Run `verify_mcp_connections.py` to re-verify all connections.
 - [x] Test the decoupled receptionist flow in a local mock environment (validating sheets/zendesk API boundaries).
 - [x] Compile the final verification findings and test run records.

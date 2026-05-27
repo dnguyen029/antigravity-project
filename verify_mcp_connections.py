@@ -288,7 +288,6 @@ This report was compiled and verified programmatically by the system verifier su
   * **Evaluation**: Discovers and logs available integrations using preflight standard-input/output JSON-RPC connection handshakes. Secure credentials are loaded natively via environmental tokens.
 
 ### 2. Standard Stdio Connection Handshakes
-* **filesystem**: Local operations node accessed via `mcp-server-filesystem` in path. Validated schema definitions successfully.
 * **exa**: Remote web-search routing using source endpoint keys. Returned active query tool methods cleanly.
 * **toon-mcp**: Python server loaded via `uv run` standard python structures. Resolved compression variables smoothly.
 

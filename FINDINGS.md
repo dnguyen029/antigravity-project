@@ -37,4 +37,17 @@ INSERT INTO swarm_knowledge_archive (
 ```
 
 ---
+
+## 🔧 MCP Config & Cleanups Audit (May 26, 2026)
+* **Goal**: Resolve frozen panel in 2.0 IDE and remove redundant legacy MCP setups.
+* **Findings**:
+  * **Config Syntax Fix**: Trailing comma in `mcp_config.json` caused Go-based IDE language server parser crash (`GetMcpServerStates` error). Trailing comma removed.
+  * **Filesystem MCP Deprecation**: Local schema `/home/dnguyen029/.gemini/antigravity/mcp/filesystem` was deleted and hardcoded handshake references removed from the verifier script. Antigravity 2.0 uses native file tools.
+  * **Process Hygiene**: Orphaned redundant `mcp-server-redis` background processes (`PID 3905` and `PID 4070`) spawned under `systemd` were identified and terminated.
+  * **Exa Search Priority Mandate**: Added `Rule 3 — Exa Search Priority` to [AGENTS.md](file:///home/dnguyen029/antigravity-project/AGENTS.md) and coded the mandate directly into the Boundaries & Constraints of all individual agent cards (`architect.txt`, `auditor.txt`, `builder.txt`, `librarian.txt`, `sre.txt`) to ensure they prioritize Exa MCP search tools to prevent token bloat.
+  * **JS Agent Deprecation & Python Fresh Start**: Formally decommissioned all legacy JavaScript/Node.js agent structures and configs (`subagents.yaml`, `swarm-config.yaml`). The workspace is now fully re-anchored on 100% Python-native agents under the Antigravity 2.0 SDK.
+  * **Memory Sanitization & Filtering**: Hardened [instructions/librarian.txt](file:///home/dnguyen029/antigravity-project/instructions/librarian.txt) and [librarian.md](file:///home/dnguyen029/antigravity-project/.agent/agents/librarian.md) with a strict mandate to filter out/ignore any retrieved legacy JavaScript or "Sovereign" memories, preventing stale data injections.
+* **Result**: `mcp_config.json` parses cleanly; verification script passes; agent rules, cards, and codebase updated to Python-only with legacy memory filtering active.
+
+---
 *Verification logged and marked complete by Technical Writer / Librarian.*
