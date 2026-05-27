@@ -4,6 +4,7 @@ import json
 import logging
 import asyncio
 import datetime
+import signal
 
 # Setup log format
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -21,6 +22,72 @@ def load_env():
                     os.environ[key.strip()] = val.strip()
 
 load_env()
+
+def kill_orphaned_mcp_servers():
+    """Scans /proc for orphaned processes matching configured MCP servers and terminates them."""
+    config_path = "mcp_config.json"
+    if not os.path.exists(config_path):
+        return
+
+    try:
+        with open(config_path, "r") as f:
+            config = json.load(f)
+        servers = config.get("mcpServers", {})
+    except Exception:
+        return
+
+    # Build list of substrings to match from configured command/arguments
+    substrings = []
+    for name, srv in servers.items():
+        substrings.append(name)
+        cmd = srv.get("command")
+        if cmd:
+            substrings.append(os.path.basename(cmd))
+        for arg in srv.get("args", []):
+            if arg and "/" in arg:
+                substrings.append(os.path.basename(arg))
+            elif arg:
+                substrings.append(arg)
+
+    # Filter out common short commands or empty strings
+    substrings = list(set([s for s in substrings if s and len(s) > 2 and s not in ["npx", "node", "python", "python3", "bash", "sh", "run"]]))
+    if not substrings:
+        return
+
+    logger.info(f"Scanning for orphaned processes matching signatures: {substrings}")
+    my_pid = os.getpid()
+    
+    if not os.path.exists("/proc"):
+        return
+
+    for pid_str in os.listdir("/proc"):
+        if not pid_str.isdigit():
+            continue
+        pid = int(pid_str)
+        if pid == my_pid:
+            continue
+            
+        try:
+            # Check PPID first
+            ppid = None
+            with open(f"/proc/{pid}/status", "r") as sf:
+                for line in sf:
+                    if line.startswith("PPid:"):
+                        ppid = int(line.split()[1])
+                        break
+            
+            # We target processes whose parent is init (1) -> orphaned
+            if ppid != 1:
+                continue
+
+            with open(f"/proc/{pid}/cmdline", "r") as f:
+                cmdline = f.read().replace("\x00", " ").strip()
+
+            if any(sub in cmdline for sub in substrings):
+                logger.info(f"Found orphaned MCP process: PID {pid} ({cmdline}). Sending SIGTERM...")
+                os.kill(pid, signal.SIGTERM)
+        except (FileNotFoundError, ProcessLookupError, PermissionError):
+            continue
 
 async def check_stdio_server(name, command, args, custom_env=None):
     """Handshakes programmatically with MCP stdio server using JSON-RPC standard."""
@@ -170,6 +237,9 @@ async def check_stdio_server(name, command, args, custom_env=None):
         return False, f"Runtime execution exception during handshake: {e}", []
 
 async def main():
+    # Sweep and clean up any pre-existing orphaned MCP servers first
+    kill_orphaned_mcp_servers()
+
     config_path = "mcp_config.json"
     if not os.path.exists(config_path):
         logger.error(f"Config file not found: {config_path}")
