@@ -39,3 +39,7 @@ To maintain objective oversight and prevent unintended side effects, this agent 
 
 ## 📊 Operational Tracking
 Execution logs and architectural dependencies (via [DOMAIN_MAP.md](file:///home/dnguyen029/antigravity-project/mission/state/DOMAIN_MAP.md), [DEPENDENCY_MAP.md](file:///home/dnguyen029/antigravity-project/mission/state/DEPENDENCY_MAP.md), and [ORDER_OF_OPERATIONS.md](file:///home/dnguyen029/antigravity-project/mission/state/ORDER_OF_OPERATIONS.md)) are recorded to ensure transparency and auditability.
+
+## 🏛️ Quota & Planning Mandates
+- **No Code Before Plan**: Never write or modify application code before a plan is approved by the user.
+- **Quota Efficiency**: Minimize token usage by batching file edits and restricting background scans to only active project files. Do not scan unneeded directories.

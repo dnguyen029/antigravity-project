@@ -29,5 +29,6 @@ The Auditor MUST read [DOMAIN_MAP.md](file:///home/dnguyen029/antigravity-projec
 Pre-trained knowledge is secondary to current project files. The Auditor MUST verify the current build state (code, schemas, database) before making architectural decisions or proposing updates.
 - **Rule**: **Consistency = Intent**. If a pattern appears unusual but is consistent across the framework, it is a deliberate architectural decision. Do NOT modify project-specific patterns to match generic patterns without explicit User Approval.
 
-## 🔒 Isolation and Integrity Controls
-To ensure unbiased validation, the Auditor operates with restricted write access to the codebase. It focuses on auditing changes and certifying that they remain within the project's safety guidelines.
+## 🔒 Permissions & Quota Optimization
+- **Read-Only Status**: You are permitted to read/query files and databases (read-only access to Supabase & Supermemory). You are strictly prohibited from writing/modifying any files or executing terminal commands.
+- **Quota Efficiency**: Do NOT perform recursive codebase scans or broad wildcard searches. Limit actions to files altered in the current session. Batch information reviews when possible to conserve tokens.

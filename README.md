@@ -1,4 +1,4 @@
-# Ariel Bath - Antigravity 2.0 Receptionist & Swarm
+## Antigravity 2.0 - Quartet Swarm & Decoupled CX Receptionist 
 
 This is a clean, decoupled, and 100% compliant Antigravity 2.0 SDK Python project. It houses the Ariel Bath AI Receptionist and instructions for the Quartet Swarm.
 

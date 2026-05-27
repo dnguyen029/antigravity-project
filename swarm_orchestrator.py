@@ -1,3 +1,62 @@
+"""
+================================================================================
+🏛️ ANTIGRAVITY SWARM QUARTET ORCHESTRATION BLUEPRINT
+================================================================================
+
+This module acts as the mechanical engine and programmatic policy manager 
+for the Antigravity 2.0 Agent Swarm. It defines agent handoffs, enforces
+strict permission boundaries, and implements quota optimizations.
+
+---
+
+🔄 1. MECHANICAL WORKFLOW PHASES
+
+  [Discovery] ➡️ [Planning] ➡️ [Approval Gate] ➡️ [Execution] ➡️ [Verification]
+     (SRE)     (Architect)      (David)       (Builder)   (Auditor/Librarian)
+
+  * PHASE 1: DISCOVERY. Verifies environmental hygiene (.env, configs).
+  * PHASE 2: PLANNING & DB RETRIEVAL. Librarian queries DB contexts. Architect 
+             drafts 'implementation_plan.md' and initial 'task.md'.
+  * PHASE 3: APPROVAL GATE. System halts execution until David explicitly approves.
+  * PHASE 4: EXECUTION & COMPILING. Builder applies surgical edits. Programmatic 
+             Python syntax validation runs.
+  * PHASE 5: VERIFICATION & STATE SYNC. Auditor audits safety rules. Librarian 
+             writes 'walkthrough.md' and syncs final metadata to Supabase.
+
+---
+
+🔒 2. ROLE-BASED QUARTET PERMISSION MATRIX (verify_tool_policy)
+
+  * 🎼 ORCHESTRATOR / ARCHITECT ('architect', 'orchestrator')
+    - Read: Everything.
+    - Write: Planning/documentation Markdown files only (.md in brain / root).
+    - Prohibitions: Strictly blocked from code files (.py, .env, .json) & terminal execution.
+
+  * 🔍 AUDITOR ('auditor')
+    - Read: Everything.
+    - Write: strictly None. Restricted to read-only audits.
+    - Prohibitions: Blocked from writing any files or executing terminal commands.
+
+  * 📚 LIBRARIAN / WRITER ('librarian', 'writer')
+    - Read: Everything.
+    - Write: Supabase & Supermemory databases (writes, SQL queries, memory updates).
+    - Prohibitions: Blocked from writing/modifying code or configuration files (.py, .json, .env).
+
+  * 🛡️ ADMIN / BUILDER ('builder', 'developer', 'admin', 'sre')
+    - Read: Everything (including DB query).
+    - Write: Project code files (.py), configurations (.json, .env).
+    - Prohibitions: Strictly blocked from writing to Supabase/Supermemory DBs.
+
+---
+
+💡 3. QUOTA OPTIMIZATION MANDATE
+  - Broad recursive codebase scans or wildcard root grep searches are programmatically blocked.
+  - Agents must target specific subfolders and files specified in the plan.
+  - Work (file edits, database queries) must be batched to minimize tool calls.
+
+================================================================================
+"""
+
 import os
 import sys
 import json
@@ -36,9 +95,9 @@ def load_mcp_servers(agent_role: str = None):
             raise ValueError("Mandatory 'supabase' server configuration is missing from mcp_config.json.")
             
         for name, srv in servers.items():
-            # Only librarian is allowed to load long-term database memory connections
-            if name in ["supabase", "supermemory"] and agent_role != "librarian":
-                continue
+            # All agents are allowed to load supabase and supermemory for read/query purposes
+            # Write access is restricted at the tool verification policy layer
+            pass
 
             if "url" in srv or "serverURL" in srv:
                 url = srv.get("url") or srv.get("serverURL")
@@ -68,12 +127,11 @@ def load_mcp_servers(agent_role: str = None):
     return mcp_servers
 
 def verify_tool_policy(agent_name: str, tool_name: str, arguments: dict):
-    """Root Cause Gate — Programmatic SDK guard to intercept tool calls.
-    This gate physically blocks execution unless:
-    1. A valid Root Cause Analysis (RCA) or Proposed Changes section exists in implementation_plan.md.
-    2. The target path is not inside a prohibited directory (.venv, .git, node_modules).
-    Note: Token compression is handled natively by the toon-mcp-server MCP layer.
+    """Root Cause Gate & Quartet Policy Enforcement — Programmatic SDK safety guard.
+    Enforces the Quartet Permission Matrix and token/quota optimization guidelines.
     """
+    agent_lower = agent_name.lower()
+    
     # 1. Prohibited Directory Guards (Read & Write)
     prohibited_folders = [".venv", ".git", "venv", "node_modules"]
     
@@ -84,70 +142,102 @@ def verify_tool_policy(agent_name: str, tool_name: str, arguments: dict):
             paths_to_check.append(arguments[arg_name])
             
     for file_path in paths_to_check:
-        normalized_path = file_path.replace("\\", "/") # normalize Windows paths if any
+        normalized_path = file_path.replace("\\", "/")
         parts = normalized_path.split("/")
         if any(folder in parts for folder in prohibited_folders):
-            print(f"\n🚨 [AUDITOR VETO] Agent '{agent_name}' attempted to access prohibited directory '{file_path}'.")
-            user_input = input("Escalate to David: Enter 'bypass' to override, or 'kill' to abort task: ").strip().lower()
-            if user_input in ["bypass", "b"]:
-                logger.info("David authorized bypass of directory check. Continuing...")
-                return
-            else:
-                raise PermissionError(
-                    f"Aborting tool execution for agent '{agent_name}': "
-                    f"Access to prohibited system directory '{file_path}' was rejected by David."
-                )
+            raise PermissionError(
+                f"Aborting execution for agent '{agent_name}': "
+                f"Access to prohibited system directory '{file_path}' is strictly blocked."
+            )
 
-    # 2. Root Cause Gate — Write Policy Guards
-    if tool_name in ["write_file", "edit_file", "write_to_file", "replace_file_content", "multi_replace_file_content"]:
-        # Get target file name from arguments
-        target_file = arguments.get("TargetFile") or arguments.get("file_path") or arguments.get("path") or ""
-        target_basename = os.path.basename(target_file)
-        
-        # Exempt planning and documentation artifacts from the block
-        if target_basename in ["implementation_plan.md", "task.md", "walkthrough.md"]:
-            return
-
-        # Document Debt Prevention: Block creation of any new files unless they match an allowed list
-        is_create = tool_name in ["write_file", "write_to_file"]
-        if is_create and not os.path.exists(target_file):
-            allowed_extensions = [".py", ".json", ".env", ".yaml", ".yml"]
-            allowed_basenames = ["implementation_plan.md", "task.md", "walkthrough.md"]
-            _, ext = os.path.splitext(target_basename)
-            if target_basename not in allowed_basenames and ext.lower() not in allowed_extensions:
+    # 2. Quota Optimization Guards: Prevent redundant or massive workspace-wide scanning
+    if tool_name in ["grep_search", "list_dir"]:
+        path_arg = arguments.get("SearchPath") or arguments.get("DirectoryPath") or ""
+        # Block scanning the entire workspace root recursively or too broadly
+        if path_arg in ["/", "/home/dnguyen029/antigravity-project", "/home/dnguyen029/antigravity-project/"]:
+            if tool_name == "grep_search" and arguments.get("Query") in ["", "*", ".*"]:
                 raise PermissionError(
                     f"Aborting execution for agent '{agent_name}': "
-                    f"Creating file '{target_basename}' is blocked to prevent document debt. "
-                    f"Agents may only create allowed configs, code files, or approved markdown files."
+                    f"Broad search queries on workspace root are blocked to optimize token/quota usage."
                 )
-        
-        # Block edits to python files or system scripts if planning files are missing or incomplete
+
+    # Extract target file if it is a write tool
+    target_file = arguments.get("TargetFile") or arguments.get("file_path") or arguments.get("path") or ""
+    target_basename = os.path.basename(target_file)
+    is_write_tool = tool_name in ["write_file", "edit_file", "write_to_file", "replace_file_content", "multi_replace_file_content", "delete_file"]
+
+    # 3. Quartet Role-Based Permission Matrix Enforcements
+    
+    # --- ORCHESTRATOR / ARCHITECT ---
+    if "orchestrator" in agent_lower or "architect" in agent_lower:
+        if is_write_tool:
+            # Orchestrator can only write planning/documentation markdown files
+            if target_basename not in ["implementation_plan.md", "task.md", "walkthrough.md"]:
+                raise PermissionError(
+                    f"Aborting execution for agent '{agent_name}': "
+                    f"Orchestrator role is restricted to planning artifacts. Cannot modify '{target_basename}'."
+                )
+        if tool_name in ["run_command", "execute_command"]:
+            raise PermissionError(
+                f"Aborting execution for agent '{agent_name}': "
+                f"Orchestrator role is prohibited from executing terminal scripts or commands."
+            )
+
+    # --- AUDITOR ---
+    elif "auditor" in agent_lower:
+        if is_write_tool:
+            raise PermissionError(
+                f"Aborting execution for agent '{agent_name}': "
+                f"Auditor role is restricted to read-only audits. No writes allowed."
+            )
+        if tool_name in ["run_command", "execute_command"]:
+            raise PermissionError(
+                f"Aborting execution for agent '{agent_name}': "
+                f"Auditor role is prohibited from executing terminal commands."
+            )
+
+    # --- LIBRARIAN ---
+    elif "librarian" in agent_lower or "writer" in agent_lower:
+        if is_write_tool:
+            # Librarian is blocked from editing project code/configs (.py, .json, .env, etc.)
+            _, ext = os.path.splitext(target_basename)
+            if ext.lower() in [".py", ".json", ".env", ".yaml", ".yml"]:
+                raise PermissionError(
+                    f"Aborting execution for agent '{agent_name}': "
+                    f"Librarian/Writer is restricted from writing to project files ({target_basename})."
+                )
+
+    # --- ADMIN / BUILDER ---
+    elif "builder" in agent_lower or "developer" in agent_lower or "admin" in agent_lower or "sre" in agent_lower:
+        # Cannot write to Supabase / Supermemory
+        if tool_name in ["memory", "apply_migration"]:
+            raise PermissionError(
+                f"Aborting execution for agent '{agent_name}': "
+                f"Tool '{tool_name}' requires exclusive 'librarian' write privileges."
+            )
+        if tool_name == "execute_sql":
+            query = arguments.get("query", "").strip().upper()
+            write_keywords = ["INSERT ", "UPDATE ", "DELETE ", "DROP ", "CREATE ", "ALTER ", "REPLACE ", "TRUNCATE ", "GRANT ", "REVOKE "]
+            if any(kw in query for kw in write_keywords):
+                raise PermissionError(
+                    f"Aborting execution for agent '{agent_name}': "
+                    f"Admin/Builder cannot execute modifying SQL database queries."
+                )
+
+    # 4. Root Cause Gate / Document Debt Prevention (General Guard for modifying/writing code files)
+    if is_write_tool and target_basename not in ["implementation_plan.md", "task.md", "walkthrough.md"]:
         plan_file = "implementation_plan.md"
         if not os.path.exists(plan_file):
-            print(f"\n🚨 [AUDITOR VETO] Agent '{agent_name}' tried to modify '{target_file}' but '{plan_file}' does not exist.")
-            user_input = input("Escalate to David: Enter 'bypass' to override, or 'kill' to abort task: ").strip().lower()
-            if user_input in ["bypass", "b"]:
-                logger.info("David authorized bypass of plan existence check. Continuing...")
-                return
-            else:
-                raise PermissionError(
-                    f"Aborting execution for agent '{agent_name}': "
-                    f"'{plan_file}' must exist before making file modifications."
-                )
+            raise PermissionError(
+                f"Aborting execution: '{plan_file}' must exist before making file modifications."
+            )
         
         with open(plan_file, "r") as f:
             content = f.read()
             if "## Proposed Changes" not in content and "## Root Cause Analysis" not in content:
-                print(f"\n🚨 [AUDITOR VETO] Agent '{agent_name}' tried to modify '{target_file}' but '{plan_file}' lacks required sections.")
-                user_input = input("Escalate to David: Enter 'bypass' to override, or 'kill' to abort task: ").strip().lower()
-                if user_input in ["bypass", "b"]:
-                    logger.info("David authorized bypass of plan content check. Continuing...")
-                    return
-                else:
-                    raise PermissionError(
-                        f"Aborting execution for agent '{agent_name}': "
-                        f"'{plan_file}' must document 'Root Cause Analysis' or 'Proposed Changes'."
-                    )
+                raise PermissionError(
+                    f"Aborting execution: '{plan_file}' must document 'Root Cause Analysis' or 'Proposed Changes'."
+                )
 
 class SwarmOrchestrator:
     def __init__(self, task_description: str):

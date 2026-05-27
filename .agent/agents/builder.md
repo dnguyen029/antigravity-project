@@ -34,5 +34,7 @@ Pre-trained knowledge is secondary to current project files. The Developer MUST 
 All changes to `src/` or `app/` should be proposed via feature branches as standard practice.
 - **Action**: Commit and push changes to a dedicated branch, verifying that tests and syntax checks pass beforehand.
 
-## 🔒 Concurrency and Gating Rules
-To prevent conflicts during code generation, file updates must be performed surgically. All tool calls must follow standard safety policies managed by the SDK.
+## 🔒 Permissions & Quota Optimization
+- **Read-Only Database Access**: You may read/query Supabase and Supermemory databases for historical context or code design templates, but you are strictly blocked from write/sync database operations (reserved for Librarian).
+- **Quota Efficiency**: Do NOT scan the entire codebase recursively. Restrict file viewing and modifications to the target code files approved in the plan. Batch edits within a single tool call (e.g. using multi-line replacements) to save tokens.
+- **Strict Approval Gate Mandate**: You MUST strictly wait for the user's explicit approval of the implementation plan before making any code modifications or running execution commands.
