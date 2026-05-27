@@ -25,11 +25,16 @@ if os.path.exists(".env"):
 def load_mcp_servers(agent_role: str = None):
     mcp_servers = []
     if not os.path.exists("mcp_config.json"):
-        return mcp_servers
+        raise FileNotFoundError("mcp_config.json is missing. Cannot verify MCP configurations.")
     try:
         with open("mcp_config.json", "r") as f:
             config = json.load(f)
         servers = config.get("mcpServers", {})
+        
+        # Enforce that supabase configuration MUST exist
+        if "supabase" not in servers:
+            raise ValueError("Mandatory 'supabase' server configuration is missing from mcp_config.json.")
+            
         for name, srv in servers.items():
             # Only librarian is allowed to load long-term database memory connections
             if name in ["supabase", "supermemory"] and agent_role != "librarian":
@@ -39,11 +44,10 @@ def load_mcp_servers(agent_role: str = None):
                 url = srv.get("url") or srv.get("serverURL")
                 headers = srv.get("headers")
 
-                # If Supabase lacks auth headers, skip it to prevent a 401 agent boot crash
+                # If Supabase lacks auth headers, raise ValueError to protect the source of truth
                 if "supabase" in name or "supabase.com" in url:
-                    if not headers or "Authorization" not in headers:
-                        logger.warning(f"Skipping {name} MCP server configuration: No Authorization headers found (would cause 401 crash).")
-                        continue
+                    if not headers or "Authorization" not in headers or not headers.get("Authorization"):
+                        raise ValueError(f"Mandatory '{name}' (Supabase) configuration is missing a valid Authorization header.")
 
                 mcp_servers.append(types.McpSseServer(
                     url=url,
@@ -59,7 +63,8 @@ def load_mcp_servers(agent_role: str = None):
                     env=env
                 ))
     except Exception as e:
-        logger.warning(f"Failed to load MCP servers from mcp_config.json: {e}")
+        logger.error(f"Failed to load/verify MCP servers from mcp_config.json: {e}")
+        raise e
     return mcp_servers
 
 def verify_tool_policy(agent_name: str, tool_name: str, arguments: dict):

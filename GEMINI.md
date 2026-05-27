@@ -11,6 +11,19 @@ This document provides identity and host environment specifications for all Goog
   - **Antigravity 2.0 IDE App** (Go-based environment loader)
   - **Antigravity CLI and Python SDK** (runs our code engine)
 - **Execution Path**: `/home/dnguyen029/venv/bin/python`
+- **Toon Server Execution**: Runs inside its dedicated local virtual environment path `.agent/skills/toon-mcp/mcp-server-toon/.venv/bin/python` to preserve dependency isolation.
+
+## 📁 Key Workspace Paths & Resources
+- **Local MCP Configurations**: [mcp_config.json](file:///home/dnguyen029/antigravity-project/mcp_config.json)
+- **Global Desktop MCP Settings**: [mcp_config.json (Desktop)](file:///home/dnguyen029/.gemini/antigravity/mcp_config.json)
+- **Global IDE MCP Settings**: [mcp_config.json (IDE)](file:///home/dnguyen029/.gemini/antigravity-ide/mcp_config.json)
+- **Environment Variables**: [.env](file:///home/dnguyen029/antigravity-project/.env)
+- **Swarm Orchestrator**: [swarm_orchestrator.py](file:///home/dnguyen029/antigravity-project/swarm_orchestrator.py)
+- **lightweight Webhook/Interactive Entry**: [main.py](file:///home/dnguyen029/antigravity-project/main.py)
+- **Preflight Connection Verifier**: [verify_mcp_connections.py](file:///home/dnguyen029/antigravity-project/verify_mcp_connections.py)
+- **System Verification Log**: [system_status_report.md](file:///home/dnguyen029/antigravity-project/system_status_report.md)
+- **Daily Swarm Workflow Guide**: [DAILY_WORKFLOW.md](file:///home/dnguyen029/antigravity-project/DAILY_WORKFLOW.md)
+- **System Logs & Brain Directory**: `/home/dnguyen029/.gemini/antigravity-cli/brain/`
 
 ---
 

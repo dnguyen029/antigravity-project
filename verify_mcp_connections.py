@@ -185,6 +185,11 @@ async def main():
     failed_count = 0
     results = {}
 
+    # Enforce that supabase configuration MUST exist
+    if "supabase" not in servers:
+        logger.error("Mandatory 'supabase' server configuration is missing from mcp_config.json.")
+        sys.exit(1)
+
     for name, srv in servers.items():
         # Identify Server Type (SSE vs. Stdio)
         if "url" in srv or "serverURL" in srv or srv.get("type") == "sse":
@@ -193,19 +198,18 @@ async def main():
             
             # Rule 1 Check: Verify auth parameters on SSE remote endpoints
             if "supabase" in name or "supabase" in url:
-                if not headers or "Authorization" not in headers:
-                    logger.warning(f"Skipping {name} (SSE) connection check: No Authorization headers found (Rule 1).")
+                if not headers or "Authorization" not in headers or not headers.get("Authorization"):
+                    logger.error(f"Mandatory {name} (SSE) connection check FAILED: No Authorization headers found.")
                     results[name] = {
                         "type": "SSE",
-                        "status": "SKIPPED",
-                        "reason": "Omitted connection handshake. No active Bearer authorization token configured in headers (prevented 401 boot crash).",
+                        "status": "FAILED",
+                        "reason": "Missing active Bearer authorization token in headers (unauthorized).",
                         "tools": []
                     }
-                    skipped_count += 1
+                    failed_count += 1
                     continue
             
             # Check other SSE servers connection (Mock / pinging logic since SSE requires active clients)
-            # We can log them as checked or test their connection if headers exist
             results[name] = {
                 "type": "SSE",
                 "status": "CONNECTED" if headers else "FAILED",
@@ -302,5 +306,10 @@ This report was compiled and verified programmatically by the system verifier su
         rf.write(report_content)
     logger.info(f"System status report successfully exported to '{report_path}'.")
 
+    if failed_count > 0:
+        logger.error(f"Verification FAILED: {failed_count} server(s) failed connection check.")
+        sys.exit(1)
+
 if __name__ == "__main__":
     asyncio.run(main())
+
