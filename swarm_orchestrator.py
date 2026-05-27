@@ -107,6 +107,19 @@ def verify_tool_policy(agent_name: str, tool_name: str, arguments: dict):
         # Exempt planning and documentation artifacts from the block
         if target_basename in ["implementation_plan.md", "task.md", "walkthrough.md"]:
             return
+
+        # Document Debt Prevention: Block creation of any new files unless they match an allowed list
+        is_create = tool_name in ["write_file", "write_to_file"]
+        if is_create and not os.path.exists(target_file):
+            allowed_extensions = [".py", ".json", ".env", ".yaml", ".yml"]
+            allowed_basenames = ["implementation_plan.md", "task.md", "walkthrough.md"]
+            _, ext = os.path.splitext(target_basename)
+            if target_basename not in allowed_basenames and ext.lower() not in allowed_extensions:
+                raise PermissionError(
+                    f"Aborting execution for agent '{agent_name}': "
+                    f"Creating file '{target_basename}' is blocked to prevent document debt. "
+                    f"Agents may only create allowed configs, code files, or approved markdown files."
+                )
         
         # Block edits to python files or system scripts if planning files are missing or incomplete
         plan_file = "implementation_plan.md"
@@ -167,7 +180,7 @@ class SwarmOrchestrator:
         """
         logger.info("📋 [PHASE 2: PLANNING] Spawns Librarian to retrieve past memory context...")
         
-        memory_context = ""
+        self.memory_context = ""
         if os.path.exists("instructions/librarian.txt"):
             with open("instructions/librarian.txt", "r") as f:
                 librarian_instructions = f.read()
@@ -181,26 +194,45 @@ class SwarmOrchestrator:
             
             try:
                 async with Agent(librarian_config) as librarian:
-                    librarian_prompt = (
+                    # Query 1: Task-specific search
+                    librarian_prompt_task = (
                         f"Search the memory database (using Supermemory or Supabase) for any past "
                         f"resolutions, lessons learned, or warnings regarding the following task:\n"
                         f"\"{self.task_description}\"\n\n"
                         f"Summarize these findings into a concise list of design rules or lessons "
                         f"that the Architect should follow to avoid repeating past errors."
                     )
-                    logger.info("Querying memory vault...")
-                    response = await librarian.chat(librarian_prompt)
-                    memory_context = await response.text()
-                    logger.info("Librarian successfully retrieved past context.")
+                    logger.info("Querying memory vault for task-specific context...")
+                    response_task = await librarian.chat(librarian_prompt_task)
+                    task_context = await response_task.text()
+
+                    # Query 2: General project architecture & swarm guidelines search
+                    librarian_prompt_gen = (
+                        "Search the memory database for general project architecture, swarm roles, "
+                        "guidelines, brand separation mandates (Ariel Bath vs Antigravity Swarm), and Trinity files (findings.md, task_plan.md, AGENTS.md, GEMINI.md)."
+                    )
+                    logger.info("Querying memory vault for general project guidelines...")
+                    response_gen = await librarian.chat(librarian_prompt_gen)
+                    gen_context = await response_gen.text()
+
+                    self.memory_context = f"=== TASK-SPECIFIC WISDOM ===\n{task_context}\n\n=== GENERAL PROJECT ARCHITECTURE & GUIDELINES ===\n{gen_context}"
+                    logger.info("Librarian successfully retrieved all memory contexts.")
             except Exception as e:
-                logger.warn(f"Librarian memory retrieval failed: {e}. Proceeding with clean context.")
-                memory_context = "No previous memory context found."
+                logger.error(f"Librarian memory retrieval failed: {e}. Halting execution immediately (Fail-Fast Policy).")
+                raise RuntimeError(f"Librarian database memory check failed: {e}. Swarm execution aborted.")
+        else:
+            logger.error("librarian.txt instructions missing. Halting execution immediately.")
+            raise RuntimeError("Librarian configuration missing. Swarm execution aborted.")
         
         logger.info("📋 Spawns Architect to draft implementation_plan.md...")
         
         # Load Architect Instructions
         with open("instructions/architect.txt", "r") as f:
             architect_instructions = f.read()
+
+        # Inject memory context directly to instructions
+        if self.memory_context:
+            architect_instructions += f"\n\n## 🧠 RECALLED MISSION WISDOM (L3 Archive)\n{self.memory_context}\n\n## 🏛️ WRITE POLICY MANDATE\nWhen modifying or updating any Markdown (.md) or documentation files, you MUST use an append-only strategy. Do not rewrite, reword, or delete existing historical sections or notes proactively unless correcting an obvious error."
 
         # Initialize the Architect agent
         config = LocalAgentConfig(
@@ -214,7 +246,6 @@ class SwarmOrchestrator:
             prompt = (
                 f"You are the Principal Architect. Draft the '{self.plan_path}' and '{self.task_path}' "
                 f"for the following task:\n\"{self.task_description}\"\n\n"
-                f"HISTORICAL MEMORY CONTEXT FROM LIBRARIAN:\n{memory_context}\n\n"
                 f"STRICT REQUIREMENT: If this task involves debugging or fixing an error, you MUST write "
                 f"an explicit 'Root Cause Analysis (RCA)' section documenting: "
                 f"(1) Symptoms, (2) Technical Root Cause, (3) Permanent Resolution Plan. "
@@ -262,6 +293,10 @@ class SwarmOrchestrator:
         with open("instructions/builder.txt", "r") as f:
             builder_instructions = f.read()
 
+        # Inject memory context directly to instructions if available
+        if hasattr(self, 'memory_context') and self.memory_context:
+            builder_instructions += f"\n\n## 🧠 RECALLED MISSION WISDOM (L3 Archive)\n{self.memory_context}\n\n## 🏛️ WRITE POLICY MANDATE\nWhen modifying or updating any Markdown (.md) or documentation files, you MUST use an append-only strategy. Do not rewrite, reword, or delete existing historical sections or notes proactively unless correcting an obvious error."
+
         # Pass custom tool verification callback policy directly to Builder agent setup
         config = LocalAgentConfig(
             system_instructions=builder_instructions,
@@ -306,6 +341,10 @@ class SwarmOrchestrator:
         # Load Librarian Instructions (the only database-authorized agent)
         with open("instructions/librarian.txt", "r") as f:
             librarian_instructions = f.read()
+
+        # Inject memory context directly to instructions if available
+        if hasattr(self, 'memory_context') and self.memory_context:
+            librarian_instructions += f"\n\n## 🧠 RECALLED MISSION WISDOM (L3 Archive)\n{self.memory_context}\n\n## 🏛️ WRITE POLICY MANDATE\nWhen modifying or updating any Markdown (.md) or documentation files, you MUST use an append-only strategy. Do not rewrite, reword, or delete existing historical sections or notes proactively unless correcting an obvious error."
 
         config = LocalAgentConfig(
             system_instructions=librarian_instructions,
