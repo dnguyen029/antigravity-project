@@ -69,3 +69,27 @@ class ZendeskClient:
         except Exception as e:
             logger.error(f"Zendesk sync failed for ticket {ticket_id}: {e}")
             return False
+
+    def search_tickets_by_po(self, po_number):
+        """Searches for tickets matching the given purchase order number."""
+        if not self.auth_header:
+            logger.error("Zendesk credentials not configured")
+            return None
+
+        headers = {
+            "Authorization": self.auth_header,
+            "Accept": "application/json"
+        }
+
+        url = f"{self.base_url}/search.json"
+        params = {"query": f'type:ticket "{po_number}"'}
+        try:
+            logger.info(f"Searching Zendesk tickets for PO {po_number}")
+            r = requests.get(url, headers=headers, params=params)
+            r.raise_for_status()
+            data = r.json()
+            return data.get("results", [])
+        except Exception as e:
+            logger.error(f"Zendesk search failed for PO {po_number}: {e}")
+            return None
+

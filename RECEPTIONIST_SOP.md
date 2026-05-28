@@ -26,12 +26,14 @@ graph TD
 All files relevant to the Receptionist system are organized below:
 
 ### 1. Agent Directives (Prompts)
+
 * **[After Hours Receptionist](file:///home/dnguyen029/antigravity-project/instructions/receptionist.txt)**: Prompt instructing lead-capture behavior.
 * **[Router Agent](file:///home/dnguyen029/antigravity-project/instructions/router.txt)** *(Planned)*: Prompt for intent classification and subagent delegation.
 * **[FAQ Receptionist](file:///home/dnguyen029/antigravity-project/instructions/faq_receptionist.txt)** *(Planned)*: Prompt for answering product/brand specifications.
 * **[WISMO Receptionist](file:///home/dnguyen029/antigravity-project/instructions/wismo_receptionist.txt)** *(Planned)*: Prompt for PO lookup and ticket status check.
 
 ### 2. Integration Tools & Code
+
 * **[Lead Logger (Sheets)](file:///home/dnguyen029/antigravity-project/tools/sheets.py)**: Python tool handling lead uploads to Google Sheets.
 * **[Zendesk Integration](file:///home/dnguyen029/antigravity-project/tools/zendesk.py)**: Python tool handling Zendesk ticket checks.
 * **[Execution Entrypoint](file:///home/dnguyen029/antigravity-project/main.py)**: The lightweight console/webhook entrypoint running the session loop.
@@ -40,10 +42,20 @@ All files relevant to the Receptionist system are organized below:
 
 ## 📡 Live Production Deployment
 
-* **Dialogflow CX Webhook URL**: `https://receptionist-prod-kckivt4dnq-uc.a.run.app/webhook`
 * **Google Cloud Project**: `arielcsx`
 * **Service Name**: `receptionist-prod` (hosted on Google Cloud Run in `us-west1`)
 * **Authentication**: Google Default Identity (OIDC-based authentication)
+
+### Webhook Endpoints
+
+All webhook calls map to the Cloud Run service path:
+* **Lead Logging (`/webhook/write-to-sheets` or `/log_lead`)**: Saves callback lead to Google Sheets and registers the ticket update in Zendesk.
+* **Order Status Lookup (`/webhook/wismo-lookup` or `/wismo_lookup`)**:
+  * **Input Payload**: `{"purchase_order": "PO-XXXXXX"}`
+  * **Response Format**: `{"success": true, "found": true, "status": "shipped", "carrier": "FedEx", "tracking_number": "1Z...", "details": "..."}`
+* **FAQ Grounding (`/webhook/faq-lookup` or `/faq_lookup`)**:
+  * **Input Payload**: `{"query": "User question here"}`
+  * **Response Format**: `{"success": true, "answer": "Response answer text...", "source": "..."}`
 
 ---
 

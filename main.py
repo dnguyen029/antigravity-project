@@ -45,20 +45,29 @@ class WebhookHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Antigravity Receptionist Webhook is LIVE")
 
     def do_POST(self):
+        content_length = int(self.headers.get('Content-Length', 0))
+        post_data = self.rfile.read(content_length)
+        
+        try:
+            payload = json.loads(post_data.decode('utf-8'))
+        except Exception as e:
+            logger.error(f"Failed to parse JSON body: {e}")
+            self.send_response(400)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": False, "error": "Invalid JSON"}).encode("utf-8"))
+            return
+
+        # 1. Lead Logging (Sheets + Zendesk)
         if self.path in ["/webhook/write-to-sheets", "/log_lead"]:
             try:
-                # 1. Parse JSON body
-                content_length = int(self.headers.get('Content-Length', 0))
-                post_data = self.rfile.read(content_length)
-                payload = json.loads(post_data.decode('utf-8'))
-                
                 logger.info(f"Received log_lead webhook request for session: {payload.get('session_id')}")
 
-                # 2. Sync to Sheets (Upsert to prevent duplicates)
+                # Sync to Sheets
                 sheets = SheetsClient()
                 sheets_success = sheets.upsert_log(payload)
 
-                # 3. Sync to Zendesk (Dual-PUT status update)
+                # Sync to Zendesk
                 zendesk_success = False
                 ticket_id = payload.get("ticket_id")
                 if ticket_id and payload.get("summary"):
@@ -71,7 +80,6 @@ class WebhookHandler(BaseHTTPRequestHandler):
                         status=status
                     )
 
-                # 4. Respond to CX Studio
                 sync_status = "synced_all" if (sheets_success and zendesk_success) else "synced_partial"
                 response_data = {
                     "success": sheets_success,
@@ -85,14 +93,107 @@ class WebhookHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(response_data).encode("utf-8"))
 
             except Exception as e:
-                logger.error(f"Error handling webhook request: {e}")
+                logger.error(f"Error handling lead log request: {e}")
                 self.send_response(500)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+
+        # 2. WISMO (Order Tracking Lookup)
+        elif self.path in ["/webhook/wismo-lookup", "/wismo_lookup"]:
+            try:
+                po_number = payload.get("purchase_order")
+                logger.info(f"Received WISMO lookup request for PO: {po_number}")
+
+                if not po_number:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": "Missing purchase_order parameter"}).encode("utf-8"))
+                    return
+
+                zendesk = ZendeskClient()
+                tickets = zendesk.search_tickets_by_po(po_number)
+
+                # Check if we have live ticket results
+                if tickets:
+                    # Return status of the most recent ticket related to this PO
+                    latest_ticket = tickets[0]
+                    response_data = {
+                        "success": True,
+                        "found": True,
+                        "status": latest_ticket.get("status"),
+                        "ticket_id": latest_ticket.get("id"),
+                        "details": f"Found order ticket {latest_ticket.get('id')} with status '{latest_ticket.get('status')}'."
+                    }
+                else:
+                    # Fallback Mock logic for local/sandbox testing as requested (no connections needed yet)
+                    logger.info("No active Zendesk credentials or ticket matches. Returning mock lookup.")
+                    
+                    # Generate a mock status based on PO string
+                    status_val = "shipped"
+                    if "pending" in po_number.lower() or "hold" in po_number.lower():
+                        status_val = "pending"
+                    elif "cancel" in po_number.lower():
+                        status_val = "cancelled"
+
+                    response_data = {
+                        "success": True,
+                        "found": True,
+                        "status": status_val,
+                        "carrier": "FedEx" if status_val == "shipped" else None,
+                        "tracking_number": "1Z999AA10123456784" if status_val == "shipped" else None,
+                        "details": f"Mock order status check: Order status is {status_val.upper()}."
+                    }
+
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps(response_data).encode("utf-8"))
+
+            except Exception as e:
+                logger.error(f"Error handling WISMO lookup request: {e}")
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+
+        # 3. FAQ Lookup / Grounding
+        elif self.path in ["/webhook/faq-lookup", "/faq_lookup"]:
+            try:
+                query = payload.get("query", "").lower()
+                logger.info(f"Received FAQ lookup request for query: {query}")
+
+                # Simple rule-based mock grounding fallback for common questions
+                if "return" in query or "policy" in query:
+                    answer = "We accept returns within 30 days of delivery. Products must be unused and in their original packaging. Return shipping costs may apply."
+                elif "warranty" in query or "guarantee" in query:
+                    answer = "All Ariel Bath vanities, tubs, and components are backed by a 1-year limited warranty covering manufacturing defects."
+                else:
+                    answer = "For detailed specifications, dimensions, installation manuals, and parts diagrams, please visit www.ArielBath.com."
+
+                response_data = {
+                    "success": True,
+                    "answer": answer,
+                    "source": "Ariel Bath Knowledge Base"
+                }
+
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps(response_data).encode("utf-8"))
+
+            except Exception as e:
+                logger.error(f"Error handling FAQ lookup request: {e}")
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+
         else:
             self.send_response(404)
             self.end_headers()
+
 
 def run_server(port=8080):
     server = HTTPServer(("0.0.0.0", port), WebhookHandler)

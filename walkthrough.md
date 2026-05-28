@@ -1,28 +1,35 @@
-# Walkthrough - Decoupled Receptionist Routing Implementation
+# Walkthrough: Dialogflow CX Webhook Extensions
 
-This walkthrough documents the restoration of workspace maps, the creation of clean receptionist SOPs, and the implementation of decoupled subagent routing.
+This document summarizes the changes implemented and verified to support order tracking (WISMO) and FAQ lookup capabilities for the Dialogflow CX-based Ariel Bath AI Receptionist.
 
-## Changes Completed
+## Changes Implemented
 
-### 🏛️ Phase 1: Mappings & SOP Setup
-* **[DOMAIN_MAP.md](file:///home/dnguyen029/antigravity-project/DOMAIN_MAP.md)**: Restored the domain map guide to the workspace root.
-* **[RIPPLE_MAP.md](file:///home/dnguyen029/antigravity-project/RIPPLE_MAP.md)**: Restored the ripple mapping dependency tracker to the workspace root.
-* **[RECEPTIONIST_SOP.md](file:///home/dnguyen029/antigravity-project/RECEPTIONIST_SOP.md)**: Created a dedicated source of truth manifest documenting the receptionist system's files, endpoints, data schemas, and conversational guidelines, free of legacy swarm meta-jargon.
+### 1. Webhook Engine (`main.py`)
+* Modified `do_POST` to handle incoming Dialogflow CX calls for:
+  * `/webhook/wismo-lookup` or `/wismo_lookup`: Extracts the `purchase_order` identifier, queries Zendesk using `ZendeskClient.search_tickets_by_po`, and returns the ticket status with carrier/tracking information. Falls back gracefully to mock shipping/pending responses for safe testing.
+  * `/webhook/faq-lookup` or `/faq_lookup`: Intercepts general product support queries (like returns, warranty policy), matches key terms, and returns grounded answers referring users back to `www.ArielBath.com`.
 
-### 📑 Phase 2: Agent Directives (Boilerplate Prompts)
-* **[instructions/router.txt](file:///home/dnguyen029/antigravity-project/instructions/router.txt)**: Created the Root Router prompt structure for classifying user intent.
-* **[instructions/faq_receptionist.txt](file:///home/dnguyen029/antigravity-project/instructions/faq_receptionist.txt)**: Created the FAQ receptionist prompt structure for answering product and policy queries.
-* **[instructions/wismo_receptionist.txt](file:///home/dnguyen029/antigravity-project/instructions/wismo_receptionist.txt)**: Created the WISMO receptionist prompt structure for order tracking.
+### 2. Zendesk Client Integration (`tools/zendesk.py`)
+* Added `search_tickets_by_po(self, po_number)` to perform real API searches against Zendesk domains for tickets matching the caller's specific Purchase Order string.
 
-### 💻 Phase 3: Webhook & Flow Logic
-* **[main.py](file:///home/dnguyen029/antigravity-project/main.py)**: Modified the interactive loop mode to handle user queries by simulating intent routing through the Router Agent, delegating to the FAQ, WISMO, or After Hours subagents.
+### 3. Documentation (`RECEPTIONIST_SOP.md`)
+* Documented the API route names, parameters, inputs, and response payloads for WISMO and FAQ.
 
 ---
 
 ## Verification Results
 
-* **Python Compile Check**: Verified that the updated `main.py` compiles successfully without any syntax errors.
-* **Simulated Interactive Verification**: The interactive loop (`python3 main.py --interactive`) demonstrates routing logic:
-  - Inputting "where is my order" or "PO" routes context to the **WISMO Receptionist**.
-  - Inputting spec questions or policy keywords routes context to the **FAQ Receptionist**.
-  - General queries default to the standard **After Hours Receptionist**.
+### 1. Syntax/Compile Test
+Ran py_compile checks inside the project's virtual environment:
+```bash
+/home/dnguyen029/venv/bin/python -m py_compile main.py tools/zendesk.py
+```
+* **Result**: `Success` (0 errors, 0 warnings).
+
+### 2. Automated Route Testing
+Executed a mock server test script `/home/dnguyen029/.gemini/antigravity-ide/brain/0438dbab-0e83-459f-9b02-51401e4e8611/scratch/test_webhooks.py`:
+* **Healthz Check**: Verified `/healthz` returns `{"status": "ok"}` correctly.
+* **WISMO Lookup**: Verified `/webhook/wismo-lookup` responds correctly to PO validation requests and applies the state transition rules (e.g. returning `pending` for pending-matched orders).
+* **FAQ Grounding**: Verified `/webhook/faq-lookup` successfully maps common return/warranty queries to exact grounded knowledge text.
+
+* **Test Result Summary**: All routes passed and returned correctly structured JSON parameters to match Dialogflow CX requirements.

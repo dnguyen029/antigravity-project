@@ -5,6 +5,7 @@
 ---
 
 ## 🛡️ 1. Governance & Capability Mapping
+
 **Objective**: Hardening the runtime and turn limits.
 
 | Primary Anchor | Downstream Echoes (MUST SYNC) | Check Command |
@@ -17,6 +18,7 @@
 ---
 
 ## 📡 2. Swarm Persona & Lane Identity
+
 **Objective**: Ensuring specialist consistency.
 
 | Primary Anchor | Downstream Echoes (MUST SYNC) | Check Command |
@@ -28,6 +30,7 @@
 ---
 
 ## 🧠 3. Database & Memory (L3)
+
 **Objective**: Maintaining State Persistence.
 
 | Primary Anchor | Downstream Echoes (MUST SYNC) | Check Command |
@@ -41,6 +44,7 @@
 ---
 
 ## 🏗️ 4. Operational Lifecycle
+
 **Objective**: Ensuring mission structural integrity.
 
 | Primary Anchor | Downstream Echoes (MUST SYNC) | Check Command |
