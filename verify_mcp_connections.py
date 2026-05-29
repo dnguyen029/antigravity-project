@@ -262,8 +262,8 @@ async def main():
 
     for name, srv in servers.items():
         # Identify Server Type (SSE vs. Stdio)
-        if "url" in srv or "serverURL" in srv or srv.get("type") == "sse":
-            url = srv.get("url") or srv.get("serverURL")
+        if "url" in srv or "serverURL" in srv or "serverUrl" in srv or srv.get("type") in ["sse", "http"]:
+            url = srv.get("url") or srv.get("serverURL") or srv.get("serverUrl")
             headers = srv.get("headers")
             
             # Rule 1 Check: Verify auth parameters on SSE remote endpoints
@@ -316,7 +316,7 @@ async def main():
     print("MCP CONNECTIONS VERIFICATION SUMMARY")
     print("="*50)
     print(f"Total Configured Servers: {total_servers}")
-    print(f" erfolgreich (Connected): {connected_count}")
+    print(f" Successfully (Connected): {connected_count}")
     print(f" Skipped:                  {skipped_count}")
     print(f" Failed:                   {failed_count}")
     print("="*50)
