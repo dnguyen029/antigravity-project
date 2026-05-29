@@ -1,0 +1,14 @@
+{
+  "venvPath": "/home/dnguyen029",
+  "venv": "venv",
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Linux",
+  "include": [
+    "."
+  ],
+  "exclude": [
+    ".venv",
+    "__pycache__",
+    ".git"
+  ]
+}
