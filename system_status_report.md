@@ -3,7 +3,7 @@
 This report was compiled and verified programmatically by the system verifier suite.
 
 ## 🕒 Audit Information
-* **Verification Timestamp**: `2026-05-28T18:24:54.843848+00:00`
+* **Verification Timestamp**: `2026-05-29T17:38:56.154813+00:00`
 * **Total Configured Servers**: `5`
 * **Successfully Connected**: `5`
 * **Skipped (Safe Guards)**: `0`
@@ -17,7 +17,7 @@ This report was compiled and verified programmatically by the system verifier su
 | :--- | :---: | :---: | :--- | :--- |
 | **supermemory** | Stdio | 🟢 CONNECTED | Standard connection established | `memory`, `recall`, `listProjects`, `whoAmI`, `memory-graph`, `fetch-graph-data` |
 | **exa** | Stdio | 🟢 CONNECTED | Standard connection established | `web_search_exa`, `web_search_advanced_exa`, `web_fetch_exa` |
-| **supabase** | SSE | 🟢 CONNECTED | Checked SSE Headers metadata structure | *None (or metadata read)* |
+| **supabase** | Stdio | 🟢 CONNECTED | Standard connection established | `list_tables`, `list_extensions`, `list_migrations`, `apply_migration`, `execute_sql` |
 | **toon-mcp** | Stdio | 🟢 CONNECTED | Standard connection established | `convert_to_toon`, `convert_to_json`, `analyze_patterns`, `get_compression_strategy`, `calculate_savings`, `batch_convert` |
 | **context-mcp** | Stdio | 🟢 CONNECTED | Standard connection established | *None (or metadata read)* |
 

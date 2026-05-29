@@ -2,10 +2,11 @@ import os
 import json
 import asyncio
 import requests
+import datetime
 
 def load_env():
     """Load env variables from .env if present."""
-    env_path = ".env"
+    env_path = "/home/dnguyen029/antigravity-project/.env"
     if os.path.exists(env_path):
         with open(env_path, "r") as f:
             for line in f:
@@ -34,7 +35,7 @@ async def read_json_rpc(stdout, request_id=None):
             continue
     return None
 
-async def _query_mcp_internal(proc):
+async def _save_memory_mcp(proc, content):
     try:
         # Step 1: Initialize handshake
         init_req = {
@@ -44,7 +45,7 @@ async def _query_mcp_internal(proc):
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "fetch-context-cli", "version": "1.0.0"}
+                "clientInfo": {"name": "sync-context-cli", "version": "1.0.0"}
             }
         }
         proc.stdin.write((json.dumps(init_req) + "\n").encode("utf-8"))
@@ -53,36 +54,37 @@ async def _query_mcp_internal(proc):
         # Read initialize response
         init_res = await read_json_rpc(proc.stdout, 1)
         if not init_res:
-            return "Error: MCP initialization handshake timed out or failed."
+            return False, "Error: MCP initialization handshake failed."
 
-        # Step 2: Request resource read
-        read_req = {
+        # Step 2: Request tool call
+        call_req = {
             "jsonrpc": "2.0",
             "id": 2,
-            "method": "resources/read",
+            "method": "tools/call",
             "params": {
-                "uri": "supermemory://profile"
+                "name": "memory",
+                "arguments": {
+                    "action": "save",
+                    "content": content
+                }
             }
         }
-        proc.stdin.write((json.dumps(read_req) + "\n").encode("utf-8"))
+        proc.stdin.write((json.dumps(call_req) + "\n").encode("utf-8"))
         await proc.stdin.drain()
 
         # Read response
         response_data = await read_json_rpc(proc.stdout, 2)
         if response_data and "result" in response_data:
-            contents = response_data["result"].get("contents", [])
-            if contents:
-                return contents[0].get("text", "No profile text returned.")
-            return "No contents found in resource response."
+            return True, response_data["result"]
         elif response_data and "error" in response_data:
-            return f"Error from Supermemory: {response_data['error']}"
-        return "Failed to get response from Supermemory."
+            return False, f"Error from Supermemory: {response_data['error']}"
+        return False, "Failed to get response from Supermemory."
     except Exception as e:
-        return f"Error during query execution: {e}"
+        return False, f"Error during query execution: {e}"
 
-async def get_supermemory_profile():
-    """Queries the Supermemory MCP server programmatically using robust JSON-RPC stdio connection."""
-    config_path = "mcp_config.json"
+async def sync_to_supermemory(content):
+    """Pushes memory content to Supermemory MCP server."""
+    config_path = "/home/dnguyen029/antigravity-project/mcp_config.json"
     if not os.path.exists(config_path):
         return "Error: mcp_config.json not found."
 
@@ -98,7 +100,6 @@ async def get_supermemory_profile():
     command = srv.get("command", "npx")
     args = srv.get("args", [])
     
-    # Start the MCP subprocess
     proc = None
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -123,25 +124,27 @@ async def get_supermemory_profile():
         return f"Failed to start Supermemory process: {e}"
 
     try:
-        # Run query with an overall 20-second timeout
-        result = await asyncio.wait_for(_query_mcp_internal(proc), timeout=20.0)
-        return result
+        success, result = await asyncio.wait_for(_save_memory_mcp(proc, content), timeout=25.0)
+        if success:
+            return f"Success: {result}"
+        else:
+            return f"Failure: {result}"
     except asyncio.TimeoutError:
-        return "Error: Supermemory connection timed out (overall 20-second limit reached)."
+        return "Error: Supermemory connection timed out."
     finally:
         if proc:
             try:
                 proc.kill()
-                await asyncio.wait_for(proc.wait(), timeout=2.0)
+                await proc.wait()
             except:
                 pass
 
-def get_supabase_lessons():
+def get_supabase_lessons(limit=10):
     """Queries Supabase directly via REST API for the latest lessons learned."""
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_KEY")
     if not url or not key:
-        return "Error: SUPABASE_URL or SUPABASE_KEY missing in environment."
+        raise ValueError("SUPABASE_URL or SUPABASE_KEY missing in environment.")
 
     headers = {
         "apikey": key,
@@ -149,43 +152,59 @@ def get_supabase_lessons():
         "Content-Type": "application/json"
     }
     
+    res = requests.get(
+        f"{url}/rest/v1/lessons_learned?select=*&order=created_at.desc&limit={limit}",
+        headers=headers,
+        timeout=15
+    )
+    if res.status_code != 200:
+        raise RuntimeError(f"Error querying Supabase: Status {res.status_code} - {res.text}")
+    
+    return res.json()
+
+async def main():
+    print("="*60)
+    print("SYNCHRONIZING SUPABASE LESSONS TO SUPERMEMORY")
+    print("="*60)
+    
     try:
-        res = requests.get(
-            f"{url}/rest/v1/lessons_learned?select=*&order=created_at.desc&limit=5",
-            headers=headers,
-            timeout=10
-        )
-        if res.status_code != 200:
-            return f"Error querying Supabase: Status {res.status_code} - {res.text}"
+        print("[1] Fetching latest 10 lessons from Supabase...")
+        lessons = get_supabase_lessons(limit=10)
+        if not lessons:
+            print("No lessons found in Supabase to sync.")
+            return
+
+        print(f"Found {len(lessons)} lessons.")
         
-        records = res.json()
-        output = []
-        for rec in records:
+        # Build a consolidated markdown block of findings/lessons to push to Supermemory
+        sync_time = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        content_parts = [
+            f"=== SUPABASE LESSONS SYNCED ON {sync_time} ==="
+        ]
+        
+        for idx, rec in enumerate(lessons, 1):
             topic = rec.get("topic", "N/A")
             created_at = rec.get("created_at", "N/A")
             content = rec.get("content", "N/A")
             agent = rec.get("agent", "N/A")
-            output.append(f"- **Topic**: {topic}\n  **Agent**: {agent} | **Date**: {created_at}\n  **Content**: {content}\n")
-        return "\n".join(output) if output else "No lessons found."
+            tags = ", ".join(rec.get("tags", [])) if rec.get("tags") else "None"
+            
+            content_parts.append(
+                f"{idx}. **Topic**: {topic}\n"
+                f"   **Agent**: {agent} | **Date**: {created_at} | **Tags**: {tags}\n"
+                f"   **Content**: {content}\n"
+            )
+            
+        consolidated_content = "\n".join(content_parts)
+        
+        print("\n[2] Pushing consolidated lessons to Supermemory...")
+        result = await sync_to_supermemory(consolidated_content)
+        print("-" * 60)
+        print(result)
+        print("-" * 60)
+        
     except Exception as e:
-        return f"Exception querying Supabase: {e}"
-
-async def main():
-    print("="*60)
-    print("FETCHING CONTEXT FROM DATABASES")
-    print("="*60)
-    
-    print("\n[1] Querying Supermemory Profile (MCP)...")
-    sm_profile = await get_supermemory_profile()
-    print("-" * 60)
-    print(sm_profile)
-    print("-" * 60)
-    
-    print("\n[2] Querying Supabase Lessons Learned (REST)...")
-    sb_lessons = get_supabase_lessons()
-    print("-" * 60)
-    print(sb_lessons)
-    print("-" * 60)
+        print(f"Sync failed with error: {e}")
 
 if __name__ == "__main__":
     asyncio.run(main())
