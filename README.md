@@ -76,7 +76,7 @@ All other agents have read/query access to memory stores; write access is sovere
 
 Every task passes through four programmatic phases enforced by `swarm_orchestrator.py`:
 
-1\. Discovery  →  2\. Planning & Root Cause Gate  →  3\. Execution  →  4\. Verification
+1\. Discovery  →  2\. Planning  →  3\. Execution  →  4\. Verification
 
 **Root Cause Gate** — A hardcoded checkpoint in `swarm_orchestrator.py` that blocks all file modifications unless `implementation_plan.md` contains a valid Root Cause Analysis documenting: (1) visible symptoms, (2) technical root cause, and (3) permanent resolution plan. Cannot be bypassed by any agent.
 
