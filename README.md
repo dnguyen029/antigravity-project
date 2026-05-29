@@ -39,10 +39,10 @@ Incoming Call / Message
 | Property | Value |
 | :---- | :---- |
 | Platform | Google Cloud Run |
-| GCP Project |  |
-| Service Name | `receptionist-prod` |
-| Region | `us-west1` |
-| Auth | Google Default Identity (OIDC) |
+| GCP Project | "GCP projectID" |
+| Service Name | "GCP service name" |
+| Region | "GCP region" |
+| Auth | "Google Default Identity (OIDC)" |
 
 ### Webhook Endpoints
 
@@ -60,7 +60,7 @@ A 5-agent engineering swarm with **enforcement-based governance** — not just r
 
 ### Roles and Responsibilities
 
-### 
+###
 
 | Agent | Role | Decision-Making Authority  |
 | :---- | :---- | :---- |
@@ -84,7 +84,7 @@ Every task passes through four programmatic phases enforced by `swarm_orchestrat
 
 ### Governance Framework (Enforced Protocols)
 
-### 
+###
 
 | Rule | Policy Mandate  |
 | :---- | :---- |
@@ -100,7 +100,7 @@ Every task passes through four programmatic phases enforced by `swarm_orchestrat
 
 ### Compliance Audit — SUCCESSFUL (May 2026\)
 
-### 
+###
 
 | Policy Verified  | Status | Notes |
 | :---- | :---- | :---- |
