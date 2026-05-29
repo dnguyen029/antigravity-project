@@ -174,16 +174,79 @@ def get_supabase_lessons():
     except Exception as e:
         return f"Exception querying Supabase: {e}"
 
+def sanitize_supermemory_profile(raw: str) -> str:
+    """
+    Strip stale phase-state blobs and HANDOFF log entries from the raw
+    Supermemory profile before injecting it into agent context.
+
+    Supermemory's 'Recent context' feed is a server-side activity timeline
+    we cannot delete. This filter discards any line or JSON block that
+    contains legacy mission-phase noise so agents only receive clean data.
+    """
+    import re
+
+    # Patterns that identify stale / deprecated context entries
+    STALE_PATTERNS = [
+        # JSON blobs with "active_goal" phase-state keys
+        r'"active_goal"\s*:\s*"Phase \d',
+        # Raw HANDOFF log lines
+        r'\[HANDOFF\]',
+        # Old orchestrator action logs
+        r'\[ORCHESTRATOR\].*\[ACTION\].*\[PHASE-',
+        # Deprecated MCP stack references (filesystem / redis)
+        r'"core_mcp".*"filesystem"',
+        r'"core_mcp".*"redis"',
+        # Old version strings (pre Python-native migration)
+        r'"version"\s*:\s*"5\.1\.0-P38',
+        r'"version"\s*:\s*"38\.',
+    ]
+
+    compiled = [re.compile(p, re.IGNORECASE) for p in STALE_PATTERNS]
+
+    # Split into blocks: lines inside a JSON blob stay together
+    lines = raw.splitlines()
+    output_lines = []
+    skip_block = False
+    brace_depth = 0
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Detect start of a JSON block we should skip
+        if not skip_block and stripped.startswith("{"):
+            # Peek ahead: check if any stale pattern matches this line or
+            # the opening line of a multi-line JSON object
+            if any(p.search(stripped) for p in compiled):
+                skip_block = True
+                brace_depth = stripped.count("{") - stripped.count("}")
+                continue
+
+        if skip_block:
+            brace_depth += stripped.count("{") - stripped.count("}")
+            if brace_depth <= 0:
+                skip_block = False  # block ended
+            continue
+
+        # For non-JSON lines, check stale patterns directly
+        if any(p.search(line) for p in compiled):
+            continue
+
+        output_lines.append(line)
+
+    return "\n".join(output_lines)
+
+
 @mcp.prompt()
 async def lessons() -> str:
     """Retrieve user profile from Supermemory and latest lessons from Supabase."""
-    sm_profile = await get_supermemory_profile()
+    sm_profile_raw = await get_supermemory_profile()
+    sm_profile = sanitize_supermemory_profile(sm_profile_raw)
     sb_lessons = get_supabase_lessons()
-    
+
     return f"""=== USER PROFILE & STABLE CONTEXT ===
 {sm_profile}
 
-=== LATEST LESSONS LEARNED ===
+=== LATEST LESSONS LEARNED (Supabase — ground truth) ===
 {sb_lessons}
 """
 
