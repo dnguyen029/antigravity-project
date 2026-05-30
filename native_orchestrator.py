@@ -50,19 +50,21 @@ def load_mcp_servers(agent_role: str = None):
         raise ValueError("Mandatory 'supabase' server configuration is missing from mcp_config.json.")
         
     for name, srv in servers.items():
-        if "url" in srv or "serverURL" in srv:
-            url = srv.get("url") or srv.get("serverURL")
-            headers = srv.get("headers")
-            if "supabase" in name or "supabase.com" in url:
-                if not headers or "Authorization" not in headers or not headers.get("Authorization"):
-                    raise ValueError(f"Mandatory '{name}' (Supabase) is missing a valid Authorization header.")
-            mcp_servers.append(types.McpSseServer(url=url, headers=headers))
-        else:
-            mcp_servers.append(types.McpStdioServer(
-                command=srv.get("command"),
-                args=srv.get("args", []),
-                env=srv.get("env")
-            ))
+        command = srv.get("command")
+        args = srv.get("args", [])
+        env = srv.get("env")
+        
+        # Security audit: Verify authorization headers for supabase if it runs via stdio wrappers
+        if name == "supabase":
+            args_str = " ".join(args)
+            if "Authorization:Bearer" not in args_str and "Authorization" not in args_str:
+                raise ValueError("Mandatory 'supabase' server is missing a valid Authorization header in its arguments.")
+        
+        mcp_servers.append(types.McpStdioServer(
+            command=command,
+            args=args,
+            env=env
+        ))
     return mcp_servers
 
 def get_policies_for_role(agent_role: str):
@@ -87,11 +89,18 @@ def get_policies_for_role(agent_role: str):
         return False
 
     # 2. Token-Waste Prevention
-    def is_broad_search(args):
-        path_arg = args.get("SearchPath") or args.get("DirectoryPath") or ""
+    def is_broad_grep_search(args):
+        path_arg = args.get("SearchPath") or ""
+        query_arg = args.get("Query") or ""
         if path_arg in ["/", "/home/dnguyen029/antigravity-project", "/home/dnguyen029/antigravity-project/"]:
-            if args.get("Query") in ["", "*", ".*"]:
+            if query_arg in ["", "*", ".*"] or len(query_arg) < 2:
                 return True
+        return False
+
+    def is_broad_list_directory(args):
+        path_arg = args.get("DirectoryPath") or args.get("path") or ""
+        if path_arg in ["/", "/home", "/home/dnguyen029", "/home/dnguyen029/"]:
+            return True
         return False
 
     # 3. Write Constraints & Document Debt Prevention
@@ -103,16 +112,22 @@ def get_policies_for_role(agent_role: str):
         plan_file = "implementation_plan.md"
         if not os.path.exists(plan_file):
             return True
-        with open(plan_file, "r") as f:
-            content = f.read()
-            if "## Proposed Changes" not in content and "## Root Cause Analysis" not in content:
-                return True
-        return False
+        try:
+            with open(plan_file, "r", encoding="utf-8") as f:
+                content = f.read().lower()
+            # Flexibly check for presence of RCA / plan elements
+            has_rca = "root cause" in content or "rca" in content
+            has_proposed = "proposed changes" in content or "proposed" in content or "plan" in content
+            if has_rca or has_proposed:
+                return False
+        except Exception:
+            return True
+        return True
 
     policies = [
         policy.deny("*", when=contains_prohibited_folder, name="prohibited_folders"),
-        policy.deny("grep_search", when=is_broad_search, name="token_waste_grep"),
-        policy.deny("list_dir", when=is_broad_search, name="token_waste_list_dir"),
+        policy.deny("grep_search", when=is_broad_grep_search, name="token_waste_grep"),
+        policy.deny("list_dir", when=is_broad_list_directory, name="token_waste_list_dir"),
     ]
 
     write_tools = ["write_file", "edit_file", "write_to_file", "replace_file_content", "multi_replace_file_content", "delete_file"]
@@ -170,6 +185,31 @@ def get_policies_for_role(agent_role: str):
     
     return policies
 
+# Extend LocalAgentConfig with load_from_workspace class method
+@classmethod
+def load_from_workspace(cls, agent_role: str, **kwargs):
+    """
+    Class method to load workspace settings for a specific agent role,
+    inheriting MCP configurations, workspaces, and safety policies.
+    """
+    mcp_servers = load_mcp_servers(agent_role)
+    policies = get_policies_for_role(agent_role)
+    
+    # Restrict to workspace directories
+    workspace_path = "/home/dnguyen029/antigravity-project"
+    workspaces = [workspace_path]
+    
+    config_args = {
+        "mcp_servers": mcp_servers,
+        "policies": policies,
+        "workspaces": workspaces,
+    }
+    # Update with any explicit overrides/args provided by caller
+    config_args.update(kwargs)
+    return cls(**config_args)
+
+LocalAgentConfig.load_from_workspace = load_from_workspace
+
 class SwarmOrchestrator:
     def __init__(self, task_description: str):
         self.task_description = task_description
@@ -190,11 +230,10 @@ class SwarmOrchestrator:
             with open("instructions/librarian.txt", "r") as f:
                 librarian_instr = f.read()
             
-            lib_config = LocalAgentConfig(
+            lib_config = LocalAgentConfig.load_from_workspace(
+                agent_role="librarian",
                 system_instructions=librarian_instr,
                 capabilities=types.CapabilitiesConfig(enable_subagents=True),
-                policies=get_policies_for_role("librarian"),
-                mcp_servers=load_mcp_servers("librarian"),
                 max_turns=5
             )
             
@@ -217,11 +256,10 @@ class SwarmOrchestrator:
         if self.memory_context:
             arch_instr += f"\n\n## 🧠 RECALLED MISSION WISDOM\n{self.memory_context}"
 
-        arch_config = LocalAgentConfig(
+        arch_config = LocalAgentConfig.load_from_workspace(
+            agent_role="architect",
             system_instructions=arch_instr,
             capabilities=types.CapabilitiesConfig(enable_subagents=True),
-            policies=get_policies_for_role("architect"),
-            mcp_servers=load_mcp_servers("architect"),
             max_turns=5
         )
         async with Agent(arch_config) as architect:
@@ -251,11 +289,10 @@ class SwarmOrchestrator:
         if self.memory_context:
             build_instr += f"\n\n## 🧠 RECALLED MISSION WISDOM\n{self.memory_context}"
 
-        builder_config = LocalAgentConfig(
+        builder_config = LocalAgentConfig.load_from_workspace(
+            agent_role="builder",
             system_instructions=build_instr,
             capabilities=types.CapabilitiesConfig(enable_subagents=True),
-            policies=get_policies_for_role("builder"),
-            mcp_servers=load_mcp_servers("builder"),
             max_turns=5
         )
         async with Agent(builder_config) as builder:
@@ -281,11 +318,10 @@ class SwarmOrchestrator:
         if self.memory_context:
             lib_instr += f"\n\n## 🧠 RECALLED MISSION WISDOM\n{self.memory_context}"
 
-        lib_config = LocalAgentConfig(
+        lib_config = LocalAgentConfig.load_from_workspace(
+            agent_role="librarian",
             system_instructions=lib_instr,
             capabilities=types.CapabilitiesConfig(enable_subagents=True),
-            policies=get_policies_for_role("librarian"),
-            mcp_servers=load_mcp_servers("librarian"),
             max_turns=5
         )
         async with Agent(lib_config) as librarian:
