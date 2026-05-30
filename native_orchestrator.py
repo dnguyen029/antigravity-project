@@ -50,21 +50,39 @@ def load_mcp_servers(agent_role: str = None):
         raise ValueError("Mandatory 'supabase' server configuration is missing from mcp_config.json.")
         
     for name, srv in servers.items():
-        command = srv.get("command")
-        args = srv.get("args", [])
-        env = srv.get("env")
-        
-        # Security audit: Verify authorization headers for supabase if it runs via stdio wrappers
-        if name == "supabase":
-            args_str = " ".join(args)
-            if "Authorization:Bearer" not in args_str and "Authorization" not in args_str:
-                raise ValueError("Mandatory 'supabase' server is missing a valid Authorization header in its arguments.")
-        
-        mcp_servers.append(types.McpStdioServer(
-            command=command,
-            args=args,
-            env=env
-        ))
+        if "serverUrl" in srv or "url" in srv or "serverURL" in srv:
+            url = srv.get("serverUrl") or srv.get("url") or srv.get("serverURL")
+            headers = srv.get("headers") or {}
+            env_vars = srv.get("env") or {}
+            
+            # Map API keys from env to Authorization headers if not already set
+            if "Authorization" not in headers:
+                for k, v in env_vars.items():
+                    if "API_KEY" in k or "TOKEN" in k or k == "SUPABASE_ACCESS_TOKEN":
+                        headers["Authorization"] = f"Bearer {v}"
+                        break
+                        
+            if "supabase" in name or "supabase.com" in url:
+                if "Authorization" not in headers or not headers.get("Authorization"):
+                    raise ValueError(f"Mandatory '{name}' (Supabase) is missing a valid Authorization header.")
+                    
+            mcp_servers.append(types.McpSseServer(url=url, headers=headers))
+        else:
+            command = srv.get("command")
+            args = srv.get("args", [])
+            env = srv.get("env")
+            
+            # Security audit: Verify authorization headers for supabase if it runs via stdio wrappers
+            if name == "supabase":
+                args_str = " ".join(args)
+                if "Authorization:Bearer" not in args_str and "Authorization" not in args_str:
+                    raise ValueError("Mandatory 'supabase' server is missing a valid Authorization header in its arguments.")
+            
+            mcp_servers.append(types.McpStdioServer(
+                command=command,
+                args=args,
+                env=env
+            ))
     return mcp_servers
 
 def get_policies_for_role(agent_role: str):
@@ -98,7 +116,7 @@ def get_policies_for_role(agent_role: str):
         return False
 
     def is_broad_list_directory(args):
-        path_arg = args.get("DirectoryPath") or args.get("path") or ""
+        path_arg = args.get("DirectoryPath") or args.get("path") or args.get("SearchDirectory") or ""
         if path_arg in ["/", "/home", "/home/dnguyen029", "/home/dnguyen029/"]:
             return True
         return False
@@ -128,6 +146,7 @@ def get_policies_for_role(agent_role: str):
         policy.deny("*", when=contains_prohibited_folder, name="prohibited_folders"),
         policy.deny("grep_search", when=is_broad_grep_search, name="token_waste_grep"),
         policy.deny("list_dir", when=is_broad_list_directory, name="token_waste_list_dir"),
+        policy.deny("find_by_name", when=is_broad_list_directory, name="token_waste_find_by_name"),
     ]
 
     write_tools = ["write_file", "edit_file", "write_to_file", "replace_file_content", "multi_replace_file_content", "delete_file"]

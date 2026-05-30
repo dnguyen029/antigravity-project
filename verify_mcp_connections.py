@@ -89,7 +89,7 @@ def kill_orphaned_mcp_servers():
         except (FileNotFoundError, ProcessLookupError, PermissionError):
             continue
 
-async def check_stdio_server(name, command, args, custom_env=None):
+async def check_stdio_server(name, command, args, custom_env=None, cwd=None):
     """Handshakes programmatically with MCP stdio server using JSON-RPC standard."""
     logger.info(f"Synthesizing handshake for stdio server: {name} (command: {command})")
     
@@ -108,7 +108,8 @@ async def check_stdio_server(name, command, args, custom_env=None):
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            env=full_env
+            env=full_env,
+            cwd=cwd
         )
     except FileNotFoundError:
         # Fallback if standard executable path needs shell expansion or finding (such as npx, node, uv)
@@ -119,7 +120,8 @@ async def check_stdio_server(name, command, args, custom_env=None):
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                env=full_env
+                env=full_env,
+                cwd=cwd
             )
         except Exception as e:
             return False, f"Failed to start subprocess shell: {e}", []
@@ -327,9 +329,22 @@ async def main():
             command = srv.get("command")
             args = srv.get("args", [])
             custom_env = srv.get("env")
-            
+
+            # Resolve working directory: toon-mcp uses a relative module path
+            # and must be launched from its own directory.
+            server_cwd = srv.get("cwd")
+            if server_cwd is None and name == "toon-mcp":
+                server_cwd = os.path.dirname(os.path.abspath(command))
+                # Walk up to the mcp-server-toon package root (contains src/)
+                candidate = os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    ".agent", "skills", "toon-mcp", "mcp-server-toon"
+                )
+                if os.path.isdir(candidate):
+                    server_cwd = candidate
+
             # We run the programmatic handshake check
-            success, message, tools_found = await check_stdio_server(name, command, args, custom_env)
+            success, message, tools_found = await check_stdio_server(name, command, args, custom_env, cwd=server_cwd)
             
             results[name] = {
                 "type": "Stdio",
