@@ -1,18 +1,57 @@
-# Ignore sensitive credentials
+# =============================================================
+# SECRETS & CREDENTIALS — Never commit these
+# =============================================================
 .env
+*.pem
+*.key
+*.token
+*.secret
 
-# Ignore python caches and build files
+# =============================================================
+# MCP CONFIG — Contains server URLs and paths; machine-specific
+# =============================================================
+mcp_config.json
+
+# =============================================================
+# AUTO-GENERATED SESSION FILES — Recreated on every run
+# =============================================================
+system_status_report.md
+implementation_plan.md
+task.md
+walkthrough.md
+
+# =============================================================
+# IDE / TOOLING TEMP FILES
+# =============================================================
+gemini-code-*.py
+pyrightconfig.json
+
+# =============================================================
+# PYTHON CACHES & BUILD ARTIFACTS
+# =============================================================
 __pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.egg-info/
+dist/
+build/
 .pytest_cache/
 
-# Ignore local configuration files
-mcp_config.json
-
-# Ignore local virtual environment
+# =============================================================
+# VIRTUAL ENVIRONMENTS (root + nested inside .agent/skills)
+# =============================================================
 .venv/
+**/.venv/
 
-# Ignore AGY session symlinks
+# =============================================================
+# ANTIGRAVITY SDK SESSION SYMLINKS
+# =============================================================
 .antigravitycli/
+
+# =============================================================
+# SKILL REFERENCE DATA — Large downloaded docs, not source code
+# =============================================================
+.agent/skills/*/references/
+.agent/skills/*/data/
