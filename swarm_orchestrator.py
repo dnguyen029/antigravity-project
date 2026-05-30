@@ -1,4 +1,8 @@
 """
+⚠️ DEPRECATION WARNING: This custom orchestrator has been deprecated in favor of 
+the native SDK orchestrator at native_orchestrator.py. Please run native_orchestrator.py
+for executing swarm tasks using native Google Antigravity 2.0 SDK paradigms.
+
 ================================================================================
 🏛️ ANTIGRAVITY SWARM QUARTET ORCHESTRATION BLUEPRINT
 ================================================================================
