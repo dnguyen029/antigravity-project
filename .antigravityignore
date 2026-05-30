@@ -1,21 +1,43 @@
-# Protect baseline quota from heavy data lists
+# =============================================================
+# SKILL REFERENCE DATA — Large docs pulled on demand, not source
+# =============================================================
 .agent/skills/ui-ux-pro-max/data/
 .agent/skills/supabase-postgres-best-practices/references/
+.agent/skills/supabase/references/
+.agent/skills/google-agents-cli-adk-code/references/
 .agent/skills/google-agents-cli-deploy/references/
+.agent/skills/google-agents-cli-eval/references/
+.agent/skills/google-agents-cli-observability/references/
+.agent/skills/google-agents-cli-scaffold/references/
+.agent/skills/google-agents-cli-workflow/references/
 **/vulnerability-scanner/**
+**/security-scanning-hardening-40.3-verified/**
 
-# Block standard lockfile background sync loops
+# =============================================================
+# TOON-MCP INTERNALS — Server venv and docs, not agent logic
+# =============================================================
+.agent/skills/toon-mcp/mcp-server-toon/
+.agent/skills/toon-mcp/docs/
+
+# =============================================================
+# LOCKFILES & LOCAL TOOLING CONFIG
+# =============================================================
 uv.lock
 pyrightconfig.json
 
-# Exclude local environment and dependency trees
+# =============================================================
+# DEPENDENCY TREES & BUILD ARTIFACTS
+# =============================================================
 .venv/
+**/.venv/
 node_modules/
-
-# Exclude binary cache directories
 **/__pycache__/
 **/.pytest_cache/
+dist/
+build/
 
-# Exclude git metadata and local CLI session tracking
+# =============================================================
+# GIT & SDK SESSION METADATA
+# =============================================================
 .git/
 .antigravitycli/
