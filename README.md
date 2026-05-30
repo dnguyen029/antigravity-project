@@ -28,6 +28,7 @@ Router Agent ──── intent: Lead Capture ──▶ After Hours Receptionis
 
 * **Headless Commerce Orchestration** — Decoupled frontend built with **Next.js** interacting seamlessly with **Medusa** and **Shopify** API-first backends via custom webhook event structures.  
 * **Contentful & Sanity.io Sync** — Dynamic schema configuration pulling directly from headless CMS layers to ground agent FAQ workflows.  
+– Integrated UI/UX CMS Studio to edit content directly from the GUI 
 * **Risk Mitigation via Isolation** — The client-facing service is fully decoupled from core engineering, ensuring zero operational cross-contamination.  
 * **Confidentiality & Privacy** — Specialized logic is kept in secure, isolated containers to prevent sensitive data leakage.  
 * **Data Integrity Checks** — Comprehensive lead profiles are validated against strict formatting standards before processing.  
