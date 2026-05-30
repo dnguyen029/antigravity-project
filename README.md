@@ -118,24 +118,29 @@ Four core information services are integrated to support organizational memory, 
 
 Plaintext  
 antigravity-project/  
-├── main.py                    \# Webhook server \+ interactive test entrypoint  
-├── swarm\_orchestrator.py      \# Programmatic 4-phase workflow \+ approval gates  
-├── verify\_mcp\_connections.py  \# MCP health verifier  
-├── toon\_mcp\_handler.py        \# Token-Oriented Object Notation compression handler  
+├── main.py                      \# Webhook server \+ interactive test entrypoint  
+├── swarm\_orchestrator.py        \# Programmatic 4-phase workflow \+ approval gates  
+├── native\_orchestrator.py       \# SDK-native orchestrator (Antigravity 2.0 async)  
+├── verify\_mcp\_connections.py    \# MCP health verifier \+ system status report generator  
 ├── instructions/  
-│   ├── receptionist.txt       \# After Hours receptionist prompt \+ lead-capture rules  
-│   └── swarm\_agents.txt       \# Persona rules: Architect, Auditor, Builder, SRE, Librarian  
+│   ├── receptionist.txt         \# After Hours receptionist prompt \+ lead-capture rules  
+│   ├── architect.txt            \# Orchestrator agent persona  
+│   ├── builder.txt              \# Builder agent persona  
+│   ├── auditor.txt              \# Auditor agent persona  
+│   ├── sre.txt                  \# Admin/SRE agent persona  
+│   └── librarian.txt            \# Librarian agent persona  
 ├── tools/  
-│   ├── sheets.py              \# Google Sheets lead logger  
-│   └── zendesk.py             \# Zendesk Dual-PUT synchronizer  
-├── .agent/                    \# Antigravity 2.0 agent profile directory  
-├── AGENTS.md                  \# Agent roster \+ governance rules  
-├── RECEPTIONIST\_SOP.md        \# Receptionist architecture, endpoints, data schema  
-├── FINDINGS.md                \# Compliance audit log \+ MCP cleanup record  
-├── DOMAIN\_MAP.md              \# Domain topology  
-├── RIPPLE\_MAP.md              \# Change impact mapping  
-├── guardrails.md              \# Safety constraints and cost bounds  
-└── GEMINI.md                  \# Agent identity \+ Antigravity 2.0 configuration
+│   ├── sheets.py                \# Google Sheets lead logger  
+│   ├── zendesk.py               \# Zendesk Dual-PUT synchronizer  
+│   └── context\_mcp\_server.py   \# Local context MCP server  
+├── .agent/                      \# Antigravity 2.0 agent profile directory  
+├── AGENTS.md                    \# Agent roster \+ governance rules  
+├── RECEPTIONIST\_SOP.md          \# Receptionist architecture, endpoints, data schema  
+├── FINDINGS.md                  \# Compliance audit log \+ MCP cleanup record  
+├── DOMAIN\_MAP.md                \# Domain topology  
+├── RIPPLE\_MAP.md                \# Change impact mapping  
+├── guardrails.md                \# Safety constraints and cost bounds  
+└── GEMINI.md                    \# Agent identity \+ Antigravity 2.0 configuration
 
 ## **🚀 Project Operations**
 
@@ -149,6 +154,9 @@ python main.py \--interactive
 
 \# Run a governed swarm task  
 python swarm\_orchestrator.py "your task description here"
+
+\# Verify all 5 MCP server connections are healthy  
+python verify\_mcp\_connections.py
 
 **Environment**: Requires a configured Python virtual environment with Antigravity 2.0 SDK and Google Agents SDK installed, valid MCP credentials in environment variables, and configured webhooks pointing to Next.js/Vercel pipelines. See GEMINI.md for full setup.
 

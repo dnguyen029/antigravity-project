@@ -49,3 +49,26 @@ If you want to run the mechanical, sequential multi-agent workflow for a task, o
 > 2. Review the plan in the right panel and approve it.
 > 3. Tag **`@builder`** to write the code.
 > 4. Tag **`@auditor`** or **`@librarian`** to verify and sync the results.
+
+---
+
+## 🔌 Pre-Flight: Verify MCP Connections
+Before starting a session, you can confirm all 5 tool servers are healthy:
+
+```bash
+/home/dnguyen029/venv/bin/python verify_mcp_connections.py
+```
+
+This generates a `system_status_report.md` in the project root showing the connection status of every server (Supermemory, Exa, Supabase, TOON MCP, Context MCP).
+
+---
+
+## ⚡ Lightweight Alternative: Native Orchestrator
+For simpler tasks that don't need the full 4-phase swarm governance, use the SDK-native orchestrator:
+
+```bash
+/home/dnguyen029/venv/bin/python native_orchestrator.py
+```
+
+This runs directly on the Antigravity 2.0 async SDK without the enforcement gates — faster for quick jobs, development testing, or one-off agent runs.
+
