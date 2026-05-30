@@ -7,3 +7,15 @@
 # Block standard lockfile background sync loops
 uv.lock
 pyrightconfig.json
+
+# Exclude local environment and dependency trees
+.venv/
+node_modules/
+
+# Exclude binary cache directories
+**/__pycache__/
+**/.pytest_cache/
+
+# Exclude git metadata and local CLI session tracking
+.git/
+.antigravitycli/
