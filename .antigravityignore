@@ -1,0 +1,9 @@
+# Protect baseline quota from heavy data lists
+.agent/skills/ui-ux-pro-max/data/
+.agent/skills/supabase-postgres-best-practices/references/
+.agent/skills/google-agents-cli-deploy/references/
+**/vulnerability-scanner/**
+
+# Block standard lockfile background sync loops
+uv.lock
+pyrightconfig.json
