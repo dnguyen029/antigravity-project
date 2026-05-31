@@ -27,10 +27,10 @@ All files relevant to the Receptionist system are organized below:
 
 ### 1. Agent Directives (Prompts)
 
-* **[After Hours Receptionist](file:///home/dnguyen029/antigravity-project/instructions/receptionist.txt)**: Prompt instructing lead-capture behavior.
-* **[Router Agent](file:///home/dnguyen029/antigravity-project/instructions/router.txt)** *(Planned)*: Prompt for intent classification and subagent delegation.
-* **[FAQ Receptionist](file:///home/dnguyen029/antigravity-project/instructions/faq_receptionist.txt)** *(Planned)*: Prompt for answering product/brand specifications.
-* **[WISMO Receptionist](file:///home/dnguyen029/antigravity-project/instructions/wismo_receptionist.txt)** *(Planned)*: Prompt for PO lookup and ticket status check.
+* **[After Hours Receptionist](file:///home/dnguyen029/antigravity-project/.agents/agents/receptionist.txt)**: Prompt instructing lead-capture behavior.
+* **[Router Agent](file:///home/dnguyen029/antigravity-project/.agents/agents/router.txt)** *(Planned)*: Prompt for intent classification and subagent delegation.
+* **[FAQ Receptionist](file:///home/dnguyen029/antigravity-project/.agents/agents/faq_receptionist.txt)** *(Planned)*: Prompt for answering product/brand specifications.
+* **[WISMO Receptionist](file:///home/dnguyen029/antigravity-project/.agents/agents/wismo_receptionist.txt)** *(Planned)*: Prompt for PO lookup and ticket status check.
 
 ### 2. Integration Tools & Code
 

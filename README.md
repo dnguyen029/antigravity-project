@@ -122,18 +122,21 @@ antigravity-project/
 ├── swarm\_orchestrator.py        \# Programmatic 4-phase workflow \+ approval gates  
 ├── native\_orchestrator.py       \# SDK-native orchestrator (Antigravity 2.0 async)  
 ├── verify\_mcp\_connections.py    \# MCP health verifier \+ system status report generator  
-├── instructions/  
-│   ├── receptionist.txt         \# After Hours receptionist prompt \+ lead-capture rules  
-│   ├── architect.txt            \# Orchestrator agent persona  
-│   ├── builder.txt              \# Builder agent persona  
-│   ├── auditor.txt              \# Auditor agent persona  
-│   ├── sre.txt                  \# Admin/SRE agent persona  
-│   └── librarian.txt            \# Librarian agent persona  
 ├── tools/  
 │   ├── sheets.py                \# Google Sheets lead logger  
 │   ├── zendesk.py               \# Zendesk Dual-PUT synchronizer  
 │   └── context\_mcp\_server.py   \# Local context MCP server  
 ├── .agents/                     \# Antigravity 2.0 agent directory  
+│   ├── agents/                  \# Subagent instructions and persona configurations  
+│   │   ├── receptionist.txt  
+│   │   ├── architect.txt  
+│   │   ├── builder.txt  
+│   │   ├── auditor.txt  
+│   │   ├── sre.txt  
+│   │   └── librarian.txt  
+│   ├── rules/                   \# Autonomic rules (AGENTS.md, GEMINI.md, etc.)  
+│   ├── skills/                  \# Reusable agent skills  
+│   └── hooks.json               \# Pre/post tool execution hook configuration  
 ├── AGENTS.md                    \# Agent roster \+ governance rules  
 ├── RECEPTIONIST\_SOP.md          \# Receptionist architecture, endpoints, data schema  
 ├── FINDINGS.md                  \# Compliance audit log \+ MCP cleanup record  

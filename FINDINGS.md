@@ -11,7 +11,7 @@ All codebase adjustments have been inspected and confirmed to conform structural
 | **Rule 1: Dynamic Header Pass-thru** | **PASSED** | Programmatic verification successfully bypasses the disconnected Supabase SSE node when credentials are absent, preventing fatal initialization boots. |
 | **Rule 2: Sovereign Database Custody** | **PASSED** | Non-librarian swarm agents are strictly pruned of Supabase/Supermemory credentials in [swarm_orchestrator.py](file:///home/dnguyen029/antigravity-project/swarm_orchestrator.py). |
 | **Rule 3: Hermetic Workspace Isolation** | **PASSED** | Local paths are configured natively, and standard environment keys are loaded exclusively from isolated environment configurations without leaking global environment states. |
-| **Rule 4: Receptionist Encapsulation** | **PASSED** | Instructions and prompt logic remain completely isolated inside [receptionist.txt](file:///home/dnguyen029/antigravity-project/instructions/receptionist.txt) with zero code leakage. |
+| **Rule 4: Receptionist Encapsulation** | **PASSED** | Instructions and prompt logic remain completely isolated inside [receptionist.txt](file:///home/dnguyen029/antigravity-project/.agents/agents/receptionist.txt) with zero code leakage. |
 
 ---
 
@@ -46,7 +46,7 @@ INSERT INTO swarm_knowledge_archive (
   * **Process Hygiene**: Orphaned redundant `mcp-server-redis` background processes (`PID 3905` and `PID 4070`) spawned under `systemd` were identified and terminated.
   * **Exa Search Priority Mandate**: Added `Rule 3 — Exa Search Priority` to [AGENTS.md](file:///home/dnguyen029/antigravity-project/AGENTS.md) and coded the mandate directly into the Boundaries & Constraints of all individual agent cards (`architect.txt`, `auditor.txt`, `builder.txt`, `librarian.txt`, `sre.txt`) to ensure they prioritize Exa MCP search tools to prevent token bloat.
   * **JS Agent Deprecation & Python Fresh Start**: Formally decommissioned all legacy JavaScript/Node.js agent structures and configs (`subagents.yaml`, `swarm-config.yaml`). The workspace is now fully re-anchored on 100% Python-native agents under the Antigravity 2.0 SDK.
-  * **Memory Sanitization & Filtering**: Hardened [instructions/librarian.txt](file:///home/dnguyen029/antigravity-project/instructions/librarian.txt) and [librarian.md](file:///home/dnguyen029/antigravity-project/.agents/rules/librarian.md) with a strict mandate to filter out/ignore any retrieved legacy JavaScript or "Sovereign" memories, preventing stale data injections.
+  * **Memory Sanitization & Filtering**: Hardened [.agents/agents/librarian.txt](file:///home/dnguyen029/antigravity-project/.agents/agents/librarian.txt) and [librarian.md](file:///home/dnguyen029/antigravity-project/.agents/rules/librarian.md) with a strict mandate to filter out/ignore any retrieved legacy JavaScript or "Sovereign" memories, preventing stale data injections.
 * **Result**: `mcp_config.json` parses cleanly; verification script passes; agent rules, cards, and codebase updated to Python-only with legacy memory filtering active.
 
 ---

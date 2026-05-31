@@ -275,8 +275,8 @@ class SwarmOrchestrator:
         logger.info("📋 [PHASE 2: PLANNING] Spawns Librarian to retrieve past memory context...")
         
         self.memory_context = ""
-        if os.path.exists("instructions/librarian.txt"):
-            with open("instructions/librarian.txt", "r") as f:
+        if os.path.exists(".agents/agents/librarian.txt"):
+            with open(".agents/agents/librarian.txt", "r") as f:
                 librarian_instructions = f.read()
             
             librarian_config = LocalAgentConfig(
@@ -321,7 +321,7 @@ class SwarmOrchestrator:
         logger.info("📋 Spawns Architect to draft implementation_plan.md...")
         
         # Load Architect Instructions
-        with open("instructions/architect.txt", "r") as f:
+        with open(".agents/agents/architect.txt", "r") as f:
             architect_instructions = f.read()
 
         # Inject memory context directly to instructions
@@ -384,7 +384,7 @@ class SwarmOrchestrator:
         logger.info("💻 [PHASE 3: EXECUTION] Spawns Builder to implement code changes...")
 
         # Load Builder Instructions
-        with open("instructions/builder.txt", "r") as f:
+        with open(".agents/agents/builder.txt", "r") as f:
             builder_instructions = f.read()
 
         # Inject memory context directly to instructions if available
@@ -433,7 +433,7 @@ class SwarmOrchestrator:
         logger.info("🛡️ [PHASE 4: VERIFICATION] Spawns Auditor & Librarian for final verification...")
 
         # Load Librarian Instructions (the only database-authorized agent)
-        with open("instructions/librarian.txt", "r") as f:
+        with open(".agents/agents/librarian.txt", "r") as f:
             librarian_instructions = f.read()
 
         # Inject memory context directly to instructions if available

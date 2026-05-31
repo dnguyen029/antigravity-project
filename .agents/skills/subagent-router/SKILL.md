@@ -1,3 +1,8 @@
+---
+name: subagent-router
+description: Rules for intent classification and subagent delegation in the receptionist routing loop. Use when routing customer requests to WISMO, FAQ, or After Hours subagents.
+---
+
 # Subagent Router Delegation Rules
 
 Analyze the user's initial query and route them to the correct specialized subagent. Analyze user intent neutrally and hand them off.

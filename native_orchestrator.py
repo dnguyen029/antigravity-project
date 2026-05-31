@@ -245,8 +245,8 @@ class SwarmOrchestrator:
             raise FileNotFoundError("Missing environment credentials (.env file).")
             
         logger.info("📋 [PHASE 2: PLANNING] Querying Supermemory & Supabase database contexts...")
-        if os.path.exists("instructions/librarian.txt"):
-            with open("instructions/librarian.txt", "r") as f:
+        if os.path.exists(".agents/agents/librarian.txt"):
+            with open(".agents/agents/librarian.txt", "r") as f:
                 librarian_instr = f.read()
             
             lib_config = LocalAgentConfig.load_from_workspace(
@@ -270,7 +270,7 @@ class SwarmOrchestrator:
                 self.memory_context = f"=== TASK WISDOM ===\n{task_text}\n\n=== GENERAL GUIDELINES ===\n{gen_text}"
 
         logger.info("Writing implementation plan using Architect agent...")
-        with open("instructions/architect.txt", "r") as f:
+        with open(".agents/agents/architect.txt", "r") as f:
             arch_instr = f.read()
         if self.memory_context:
             arch_instr += f"\n\n## 🧠 RECALLED MISSION WISDOM\n{self.memory_context}"
@@ -303,7 +303,7 @@ class SwarmOrchestrator:
             return
 
         logger.info("💻 [PHASE 3: EXECUTION] Spawning Builder to implement code changes...")
-        with open("instructions/builder.txt", "r") as f:
+        with open(".agents/agents/builder.txt", "r") as f:
             build_instr = f.read()
         if self.memory_context:
             build_instr += f"\n\n## 🧠 RECALLED MISSION WISDOM\n{self.memory_context}"
@@ -332,7 +332,7 @@ class SwarmOrchestrator:
                 sys.exit(1)
 
         logger.info("🛡️ [PHASE 4: VERIFICATION] Spawning Librarian for final sync...")
-        with open("instructions/librarian.txt", "r") as f:
+        with open(".agents/agents/librarian.txt", "r") as f:
             lib_instr = f.read()
         if self.memory_context:
             lib_instr += f"\n\n## 🧠 RECALLED MISSION WISDOM\n{self.memory_context}"
