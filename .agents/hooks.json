@@ -1,0 +1,15 @@
+{
+  "safety-gate": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /home/dnguyen029/antigravity-project/.agents/hooks/safety_gate.py"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -133,7 +133,7 @@ antigravity-project/
 │   ├── sheets.py                \# Google Sheets lead logger  
 │   ├── zendesk.py               \# Zendesk Dual-PUT synchronizer  
 │   └── context\_mcp\_server.py   \# Local context MCP server  
-├── .agent/                      \# Antigravity 2.0 agent profile directory  
+├── .agents/                     \# Antigravity 2.0 agent directory  
 ├── AGENTS.md                    \# Agent roster \+ governance rules  
 ├── RECEPTIONIST\_SOP.md          \# Receptionist architecture, endpoints, data schema  
 ├── FINDINGS.md                  \# Compliance audit log \+ MCP cleanup record  

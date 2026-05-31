@@ -1,14 +1,6 @@
 ---
-agent:
-  id: "librarian"
-  name: "Technical Writer & Knowledge Lead"
-  version: "57.0"
-  lane: 4
-  max_turns: 50
-  capabilities:
-    - "/archive"
-    - "/index"
-    - "/recall"
+trigger: model_decision
+description: Librarian agent rules for governing project documentation, state archival tracking, and memory vault synchronization.
 ---
 
 # 📚 Writer Profile: Technical Writer

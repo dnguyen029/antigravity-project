@@ -12,7 +12,7 @@ This document provides identity and host environment specifications for all Goog
   - **Antigravity 2.0 IDE App** (Go-based environment loader)
   - **Antigravity CLI and Python SDK** (runs our code engine)
 - **Execution Path**: `/home/dnguyen029/venv/bin/python`
-- **Toon Server Execution**: Runs inside its dedicated local virtual environment path `.agent/skills/toon-mcp/mcp-server-toon/.venv/bin/python` to preserve dependency isolation.
+- **Toon Server Execution**: Runs inside its dedicated local virtual environment path `.agents/skills/toon-mcp/mcp-server-toon/.venv/bin/python` to preserve dependency isolation.
 
 ## 📁 Key Workspace Paths & Resources
 

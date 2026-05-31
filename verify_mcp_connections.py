@@ -338,7 +338,7 @@ async def main():
                 # Walk up to the mcp-server-toon package root (contains src/)
                 candidate = os.path.join(
                     os.path.dirname(os.path.abspath(__file__)),
-                    ".agent", "skills", "toon-mcp", "mcp-server-toon"
+                    ".agents", "skills", "toon-mcp", "mcp-server-toon"
                 )
                 if os.path.isdir(candidate):
                     server_cwd = candidate

@@ -1,13 +1,6 @@
 ---
-agent:
-  id: "auditor"
-  name: "Lead Security & QA Engineer"
-  lane: 2
-  max_turns: 50
-  capabilities:
-    - "/audit"
-    - "/security"
-    - "/verify"
+trigger: model_decision
+description: Lead Security & QA Auditor for validating code changes against security standards, architectural guidelines, and safety policies.
 ---
 
 # 🛡️ Auditor Profile: Lead Security & QA Auditor

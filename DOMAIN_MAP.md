@@ -7,10 +7,10 @@
 | **Core Logic** | Central orchestration and mission management. | `src/core/` |
 | **Agent Runtime** | The execution environment for swarm members. | `src/agents/` |
 | **Lifecycle** | Boot, FSM, and Handoff protocols. | `scripts/lifecycle/`, `src/core/lifecycle/` |
-| **Skills** | Specialized agent capabilities and MCP tools. | `.agent/skills/` |
+| **Skills** | Specialized agent capabilities and MCP tools. | `.agents/skills/` |
 | **Toon MCP** | Interactive visualization and feedback systems. | `src/core/toon/` |
 | **Vault Manifests** | Secured configuration and component manifests. | `config/vault/` |
-| **Workflows** | Standardized operational procedures. | `.agent/workflows/` |
+| **Workflows** | Standardized operational procedures. | `.agents/workflows/` |
 | **Memory (L3)** | Persistent wisdom and context archival (Supabase). | `src/core/memory/` |
 | **Ripple Map** | Architectural dependency and cascading update guide. | `RIPPLE_MAP.md` |
 | **Order of Ops** | Mandatory sequence for [VERIFIED] mutations. | `ORDER_OF_OPERATIONS.md` |

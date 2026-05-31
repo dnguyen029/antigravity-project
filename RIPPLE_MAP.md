@@ -10,8 +10,8 @@
 
 | Primary Anchor | Downstream Echoes (MUST SYNC) | Check Command |
 | :--- | :--- | :--- |
-| **Turn Limits** (`max_turns`) | `.gemini/settings.json`, `config/subagents.yaml`, `.agent/agents/*.md` | `node scripts/ops/ripple_check.js .gemini/settings.json --confirm` |
-| **Capability Level** | `mission/state/PROGRESS.md`, `.agent/mission/MISSION.md`, `FINDINGS.md` | `node scripts/ops/ripple_check.js mission/state/PROGRESS.md --confirm` |
+| **Turn Limits** (`max_turns`) | `.gemini/settings.json`, `config/subagents.yaml`, `.agents/rules/*.md` | `node scripts/ops/ripple_check.js .gemini/settings.json --confirm` |
+| **Capability Level** | `mission/state/PROGRESS.md`, `.agents/mission/MISSION.md`, `FINDINGS.md` | `node scripts/ops/ripple_check.js mission/state/PROGRESS.md --confirm` |
 | **Tool Permissions** | `src/core/governance/lane_manager.js`, `config/governance/policies.json` | `node scripts/ops/ripple_check.js config/governance/policies.json --confirm` |
 | **Zod Schemas** | `src/schemas/tool_validation.js`, `src/schemas/receptionist_openapi.json` | `node scripts/ops/ripple_check.js src/schemas/tool_validation.js --confirm` |
 
@@ -25,7 +25,7 @@
 | :--- | :--- | :--- |
 | **Agent Registry** | `config/discovery_registry.json`, `config/subagents.yaml`, `AGENTS.md` | `node scripts/ops/ripple_check.js config/discovery_registry.json --confirm` |
 | **ADK Bridge Mapping** | `src/agents/index.js`, `src/framework/adk_bridge.js` | `node scripts/ops/ripple_check.js src/framework/adk_bridge.js --confirm` |
-| **Lane Authority** | `src/core/governance/lane_manager.js`, `.agent/agents/*.md`, `GEMINI.md` | `node scripts/ops/ripple_check.js src/core/governance/lane_manager.js --confirm` |
+| **Lane Authority** | `src/core/governance/lane_manager.js`, `.agents/rules/*.md`, `GEMINI.md` | `node scripts/ops/ripple_check.js src/core/governance/lane_manager.js --confirm` |
 
 ---
 
