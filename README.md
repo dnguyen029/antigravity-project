@@ -28,7 +28,7 @@ Router Agent ──── intent: Lead Capture ──▶ After Hours Receptionis
 
 * **Headless Commerce Orchestration** — Decoupled frontend built with **Next.js** interacting seamlessly with **Medusa** and **Shopify** API-first backends via custom webhook event structures.  
 * **Contentful & Sanity.io Sync** — Dynamic schema configuration pulling directly from headless CMS layers to ground agent FAQ workflows.  
-– Integrated UI/UX CMS Studio to edit content directly from the GUI 
+– Integrated UI/UX CMS Studio to edit content directly from the GUI
 * **Risk Mitigation via Isolation** — The client-facing service is fully decoupled from core engineering, ensuring zero operational cross-contamination.  
 * **Confidentiality & Privacy** — Specialized logic is kept in secure, isolated containers to prevent sensitive data leakage.  
 * **Data Integrity Checks** — Comprehensive lead profiles are validated against strict formatting standards before processing.  
@@ -166,4 +166,3 @@ python verify\_mcp\_connections.py
 ## **Tech Stack**
 
 Python 3 · JavaScript/TypeScript · Google Antigravity 2.0 SDK · Google Agents SDK (ADK) · Agents CLI · Google Antigravity IDE · Google Cloud Run · Next.js · Medusa · Shopify Backend · Contentful CMS · Sanity.io · Supabase · Supermemory · Exa Search · Google Sheets API · Zendesk API · MCP (Model Context Protocol) · TOON MCP Server
-

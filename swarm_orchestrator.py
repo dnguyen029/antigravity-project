@@ -85,7 +85,7 @@ if os.path.exists(".env"):
                     key, value = stripped.split("=", 1)
                     os.environ[key.strip()] = value.strip()
 
-def load_mcp_servers(agent_role: str = None):
+def load_mcp_servers(agent_role: str | None = None):
     mcp_servers = []
     if not os.path.exists("mcp_config.json"):
         raise FileNotFoundError("mcp_config.json is missing. Cannot verify MCP configurations.")
@@ -106,7 +106,7 @@ def load_mcp_servers(agent_role: str = None):
             if "url" in srv or "serverURL" in srv:
                 url = srv.get("url") or srv.get("serverURL")
                 headers = srv.get("headers")
-
+ 
                 # If Supabase lacks auth headers, raise ValueError to protect the source of truth
                 if "supabase" in name or "supabase.com" in url:
                     if not headers or "Authorization" not in headers or not headers.get("Authorization"):
@@ -371,7 +371,7 @@ class SwarmOrchestrator:
             logger.info("Plan APPROVED. Authorizing implementation phase.")
         else:
             self.approved = False
-            logger.warn("Plan REJECTED. Halting swarm execution.")
+            logger.warning("Plan REJECTED. Halting swarm execution.")
             sys.exit(0)
 
     async def run_execution(self):

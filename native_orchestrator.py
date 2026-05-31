@@ -33,7 +33,7 @@ def load_env():
 
 load_env()
 
-def load_mcp_servers(agent_role: str = None):
+def load_mcp_servers(agent_role: str | None = None):
     """Load and parse workspace MCP servers."""
     mcp_servers = []
     config_path = "mcp_config.json"
@@ -205,7 +205,6 @@ def get_policies_for_role(agent_role: str):
     return policies
 
 # Extend LocalAgentConfig with load_from_workspace class method
-@classmethod
 def load_from_workspace(cls, agent_role: str, **kwargs):
     """
     Class method to load workspace settings for a specific agent role,
@@ -227,7 +226,7 @@ def load_from_workspace(cls, agent_role: str, **kwargs):
     config_args.update(kwargs)
     return cls(**config_args)
 
-LocalAgentConfig.load_from_workspace = load_from_workspace
+LocalAgentConfig.load_from_workspace = classmethod(load_from_workspace)  # type: ignore
 
 class SwarmOrchestrator:
     def __init__(self, task_description: str):
@@ -249,7 +248,7 @@ class SwarmOrchestrator:
             with open(".agents/agents/librarian.txt", "r") as f:
                 librarian_instr = f.read()
             
-            lib_config = LocalAgentConfig.load_from_workspace(
+            lib_config = LocalAgentConfig.load_from_workspace(  # type: ignore
                 agent_role="librarian",
                 system_instructions=librarian_instr,
                 capabilities=types.CapabilitiesConfig(enable_subagents=True),
@@ -268,6 +267,7 @@ class SwarmOrchestrator:
                 gen_text = await gen_resp.text()
                 
                 self.memory_context = f"=== TASK WISDOM ===\n{task_text}\n\n=== GENERAL GUIDELINES ===\n{gen_text}"
+ 
 
         logger.info("Writing implementation plan using Architect agent...")
         with open(".agents/agents/architect.txt", "r") as f:
@@ -275,7 +275,7 @@ class SwarmOrchestrator:
         if self.memory_context:
             arch_instr += f"\n\n## 🧠 RECALLED MISSION WISDOM\n{self.memory_context}"
 
-        arch_config = LocalAgentConfig.load_from_workspace(
+        arch_config = LocalAgentConfig.load_from_workspace(  # type: ignore
             agent_role="architect",
             system_instructions=arch_instr,
             capabilities=types.CapabilitiesConfig(enable_subagents=True),
@@ -308,7 +308,7 @@ class SwarmOrchestrator:
         if self.memory_context:
             build_instr += f"\n\n## 🧠 RECALLED MISSION WISDOM\n{self.memory_context}"
 
-        builder_config = LocalAgentConfig.load_from_workspace(
+        builder_config = LocalAgentConfig.load_from_workspace(  # type: ignore
             agent_role="builder",
             system_instructions=build_instr,
             capabilities=types.CapabilitiesConfig(enable_subagents=True),
@@ -337,7 +337,7 @@ class SwarmOrchestrator:
         if self.memory_context:
             lib_instr += f"\n\n## 🧠 RECALLED MISSION WISDOM\n{self.memory_context}"
 
-        lib_config = LocalAgentConfig.load_from_workspace(
+        lib_config = LocalAgentConfig.load_from_workspace(  # type: ignore
             agent_role="librarian",
             system_instructions=lib_instr,
             capabilities=types.CapabilitiesConfig(enable_subagents=True),
